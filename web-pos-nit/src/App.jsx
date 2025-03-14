@@ -27,11 +27,6 @@ import AboutHomepage from "./page/about/Aboutpage";
 
 
 function App() {
-  const MainLayoutWrapper = () => (
-  <MainLayoutAuth>
-    <Outlet />
-  </MainLayoutAuth>
-);
   return (
     <BrowserRouter>
       <Routes >
