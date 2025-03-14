@@ -45,8 +45,7 @@ td {
   font-size: 10px;
   font-weight: bold;
   color: #333;
-  letter-spacing: 0.5px; /* Adding space between characters for the Killing Mark effect */
-  text-transform: uppercase; /* Optional: to make the letters appear in uppercase */
+/* Optional: to make the letters appear in uppercase */
 }
 
 .khmer-oil {
