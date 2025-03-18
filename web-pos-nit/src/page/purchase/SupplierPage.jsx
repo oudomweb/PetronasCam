@@ -282,7 +282,7 @@ function SupplierPage() {
         </Form.Item>
     </Form>
 </Modal>
-      <Table
+      <Table style={{fontSize: '80px', fontWeight: "bold", color: "#333"}}
   dataSource={state.list}
   columns={[
     {

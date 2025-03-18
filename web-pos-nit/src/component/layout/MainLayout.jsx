@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Breadcrumb, Button, Dropdown, Input, Layout, Menu, Tag, theme } from "antd";
+import { Dropdown, Layout, Menu, Tag, theme } from "antd";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./MainLayout.css";
 import logo from "../../assets/petronas.png";
@@ -29,7 +29,7 @@ import {
   CreditCardOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
-const { Header, Content, Footer, Sider } = Layout;
+const { Content, Footer, Sider } = Layout;
 <div>
   <Tag>V 1.0.1</Tag>
 </div>
@@ -264,7 +264,6 @@ const MainLayout = () => {
       key: "1",
       label: (
         <a disabled target="_blank" rel="noopener noreferrer">
-          {/* href="/" */}
           Profile
         </a>
       ),

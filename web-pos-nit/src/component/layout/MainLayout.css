@@ -9,8 +9,9 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   position: relative; 
   overflow: hidden;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, #009a90dc, #009A8F);
   padding: 50px;
+
 }
 .admin-header::before {
   content: '';
