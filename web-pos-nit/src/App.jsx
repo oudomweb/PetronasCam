@@ -26,6 +26,7 @@ import Total_DuePage from "./page/total_due/Total_DuePage";
 import AboutHomepage from "./page/about/Aboutpage";
 import ProfilePage from "./page/user/ProfilePage";
 import ExpanseTypePage from "./page/expanse/ExpanseTypePage";
+import { Config } from "./util/config";
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
       <Outlet />
     </MainLayoutAuth>
   );
+  console.log(Config.base_url)
   return (
    
       <BrowserRouter>

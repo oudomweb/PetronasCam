@@ -1,18 +1,19 @@
+require('dotenv').config();
+
 module.exports = {
   config: {
-    app_name: "POS-NIT",
-    app_versoin: "1.0",
-    image_path: "C:/xampp/htdocs/fullstack/",
+    app_name: process.env.APP_NAME,
+    app_version: process.env.APP_VERSION,
+    image_path: process.env.IMAGE_PATH,
     db: {
-      HOST: "localhost",
-      USER: "root",
-      PASSWORD: "",
-      DATABASE: "invoices-project",
-      PORT: 3306,
+      HOST: process.env.DB_HOST,
+      USER: process.env.DB_USER,
+      PASSWORD: process.env.DB_PASSWORD,
+      DATABASE: process.env.DB_DATABASE,
+      PORT: process.env.DB_PORT,
     },
     token: {
-      access_token_key:
-        "#$*%*(*234898ireiuLJEROI#@)(#)$*@#)*$(@948858839798283838jaflke",
+      access_token_key: process.env.ACCESS_TOKEN_KEY,
     },
   },
 };
