@@ -57,7 +57,9 @@ function Top_Sales() {
         </Space>
       </div>
       <Table
+      
         dataSource={list}
+        
         columns={[
           {
             key: "No",
@@ -80,7 +82,7 @@ function Top_Sales() {
             title: "Category Name",
             dataIndex: "category_name",
             render: (text) => (
-              <span style={{ fontWeight: "bold", color: "#595959" }}>{text}</span>
+              <span className="pos-row">{text}</span>
             ),
           },
           {

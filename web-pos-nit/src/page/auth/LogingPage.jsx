@@ -4,7 +4,6 @@ import { request } from "../../util/helper";
 import { setAcccessToken, setPermission, setProfile } from "../../store/profile.store";
 import { useNavigate } from "react-router-dom";
 import login_p1 from "../../assets/login.png";
-import Petronas from "../../assets/logopetronas.png";
 function LoginPage() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -85,9 +84,6 @@ function LoginPage() {
           borderRadius: "8px",
         }}
       >
-        <img
-        style={{width: 100, height: 100, marginLeft: 50, marginBottom: 50}}
-         src={Petronas} alt="" />
         <h1 style={{ textAlign: "center", color: "#333" }}>
           {isRegistering ? "Register" : "Login"}
         </h1>

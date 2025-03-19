@@ -1,8 +1,71 @@
 const { db, isArray, isEmpty, logError } = require("../util/helper");
 
+// exports.getListExpanseType = async (req, res) => {
+//   try {
+//     const { txtSearch, page = 1, limit = 10 } = req.query;
+
+//     // Calculate offset for pagination
+//     const offset = (page - 1) * limit;
+
+//     // Construct SQL query with filters and pagination
+//     const sql = `
+//       SELECT 
+//         e.id,
+//         e.name,
+//         e.ref_no,
+//         e.amount,
+//         e.remark,
+//         e.expense_date,
+//         et.name AS expense_type_name
+//       FROM 
+//         expense e
+//       JOIN 
+//         expense_type et ON e.expense_type_id = et.id
+//       WHERE 
+//         e.name LIKE :txtSearch OR e.ref_no LIKE :txtSearch
+//       LIMIT :limit OFFSET :offset
+//     `;
+
+//     // Execute the query with parameters
+//     const [data] = await db.query(sql, {
+//       txtSearch: `%${txtSearch || ''}%`, // Add wildcards for partial matching
+//       limit: parseInt(limit),
+//       offset: parseInt(offset),
+//     });
+
+//     // Fetch total count for pagination
+//     const countSql = `
+//       SELECT COUNT(*) AS total
+//       FROM expense e
+//       JOIN expense_type et ON e.expense_type_id = et.id
+//       WHERE e.name LIKE :txtSearch OR e.ref_no LIKE :txtSearch
+//     `;
+
+//     const [countResult] = await db.query(countSql, {
+//       txtSearch: `%${txtSearch || ''}%`,
+//     });
+
+//     const total = countResult[0].total;
+
+//     res.json({
+//       success: true,
+//       data: data,
+//       total: total,
+//       message: "Expense list fetched successfully!",
+//     });
+//   } catch (error) {
+//     console.error("Error fetching expense list:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch expense list.",
+//     });
+//   }
+// };
+
+
 exports.getListExpanseType = async (req, res) => {
   try {
-    const { txtSearch, page = 1, limit = 10 } = req.query;
+    const { txtSearch, page = 1, limit = 10, expense_type_id } = req.query;
 
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
@@ -16,13 +79,15 @@ exports.getListExpanseType = async (req, res) => {
         e.amount,
         e.remark,
         e.expense_date,
-        et.name AS expense_type_name
+        et.name AS expense_type_name,
+        e.expense_type_id
       FROM 
         expense e
       JOIN 
         expense_type et ON e.expense_type_id = et.id
       WHERE 
-        e.name LIKE :txtSearch OR e.ref_no LIKE :txtSearch
+        (e.name LIKE :txtSearch OR e.ref_no LIKE :txtSearch)
+        ${expense_type_id ? 'AND e.expense_type_id = :expense_type_id' : ''}
       LIMIT :limit OFFSET :offset
     `;
 
@@ -31,6 +96,7 @@ exports.getListExpanseType = async (req, res) => {
       txtSearch: `%${txtSearch || ''}%`, // Add wildcards for partial matching
       limit: parseInt(limit),
       offset: parseInt(offset),
+      expense_type_id: expense_type_id ? parseInt(expense_type_id) : undefined,
     });
 
     // Fetch total count for pagination
@@ -38,11 +104,13 @@ exports.getListExpanseType = async (req, res) => {
       SELECT COUNT(*) AS total
       FROM expense e
       JOIN expense_type et ON e.expense_type_id = et.id
-      WHERE e.name LIKE :txtSearch OR e.ref_no LIKE :txtSearch
+      WHERE (e.name LIKE :txtSearch OR e.ref_no LIKE :txtSearch)
+        ${expense_type_id ? 'AND e.expense_type_id = :expense_type_id' : ''}
     `;
 
     const [countResult] = await db.query(countSql, {
       txtSearch: `%${txtSearch || ''}%`,
+      expense_type_id: expense_type_id ? parseInt(expense_type_id) : undefined,
     });
 
     const total = countResult[0].total;

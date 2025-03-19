@@ -12,38 +12,40 @@ import {
   Tag,
 } from "antd";
 import { formatDateClient, isPermission, request } from "../../util/helper";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdEdit, MdPayment } from "react-icons/md";
 import MainPage from "../../component/layout/MainPage";
 import { configStore } from "../../store/configStore";
 import * as XLSX from 'xlsx/xlsx.mjs';
 import { BsSearch } from "react-icons/bs";
 import { IoIosBook } from "react-icons/io";
+
 function Total_DuePage() {
   const { config } = configStore();
   const [form] = Form.useForm();
-  const [list, setList] = useState([]);
+  const [paymentForm] = Form.useForm();
   const [createByOptions, setCreateByOptions] = useState([]);
   const [state, setState] = useState({
     list: [],
     total: 0,
     loading: false,
     visibleModal: false,
+    visiblePaymentModal: false,
     is_list_all: false,
     editingRecord: null,
+    payingRecord: null,
   });
   const refPage = React.useRef(1);
   const [filter, setFilter] = useState({
     txt_search: "",
     category_id: "",
     brand: "",
-    create_by: "", 
+    create_by: "",
   });
 
   useEffect(() => {
     getList();
     fetchCreateByOptions();
   }, []);
-
 
   const fetchCreateByOptions = async () => {
     const res = await request("gettotal_due/creators", "get");
@@ -82,78 +84,106 @@ function Total_DuePage() {
   };
 
   const ExportToExcel = () => {
-    if (list.length === 0) {
+    if (state.list.length === 0) {
       message.warning("No data available to export.");
       return;
     }
-    const data = list.map((item) => ({
-      ...item,
-      create_at: formatDateClient(item.create_at),
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Product");
+    const hideLoadingMessage = message.loading(
+      <div className="khmer-text">សូមមេត្តារងចាំ...</div>,
+      0
+    );
     setTimeout(() => {
+      const data = state.list.map((item) => ({
+        ...item,
+        create_at: formatDateClient(item.create_at),
+      }));
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Product");
       XLSX.writeFile(wb, "Product_Data.xlsx");
+      hideLoadingMessage();
+      message.success("Export completed successfully!");
     }, 2000);
   };
 
-  const onClickEdit = (record) => {
+
+
+
+
+  const onClickPay = (record) => {
+    console.log("Payment record:", record); // Add this line to debug
     setState((prev) => ({
       ...prev,
-      visibleModal: true,
-      editingRecord: record,
+      visiblePaymentModal: true,
+      payingRecord: record,
     }));
-    form.setFieldsValue(record);
-  };
-
-  const onClickDelete = (record) => {
-    Modal.confirm({
-      title: "Are you sure you want to delete this record?",
-      content: "This action cannot be undone.",
-      onOk: async () => {
-        const res = await request(`total_due/${record.id}`, "delete");
-        if (res && !res.error) {
-          message.success("Record deleted successfully!");
-          getList();
-        } else {
-          message.error("Failed to delete record.");
-        }
-      },
+    paymentForm.setFieldsValue({
+      paid_amount: record.paid_amount || 0,
     });
   };
 
-  const handleEditSubmit = async () => {
+  const handlePaymentSubmit = async () => {
     try {
-      const values = await form.validateFields();
-      const res = await request(`total_due/${state.editingRecord.id}`, "put", values);
+      const values = await paymentForm.validateFields();
+      const { payingRecord } = state;
+      
+      // Debug the record structure
+      console.log("Submitting payment for record:", payingRecord);
+      
+      // Check all possible ID properties
+      const recordId = payingRecord?.id || payingRecord?.total_due_id || payingRecord?._id;
+      
+      if (!payingRecord || !recordId) {
+        message.error("Invalid record selected for payment update");
+        return;
+      }
+      
+      const paidAmount = Number(values.paid_amount);
+      if (isNaN(paidAmount)) {
+        message.error("Please enter a valid payment amount");
+        return;
+      }
+      
+      const payload = {
+        id: recordId,
+        paid_amount: paidAmount
+      };
+      
+      console.log("Sending payload:", payload);
+      
+      const res = await request("updateTotalDue", "put", payload);
       if (res && !res.error) {
-        message.success("Record updated successfully!");
+        message.success("Payment updated successfully!");
         setState((prev) => ({
           ...prev,
-          visibleModal: false,
-          editingRecord: null,
+          visiblePaymentModal: false,
+          payingRecord: null,
         }));
         getList();
       } else {
-        message.error("Failed to update record.");
+        message.error(res?.error || "Failed to update payment.");
       }
     } catch (error) {
       console.error("Validation failed:", error);
+      message.error("Form validation failed");
     }
   };
 
-  const handleModalCancel = () => {
+
+
+
+  const handlePaymentModalCancel = () => {
     setState((prev) => ({
       ...prev,
-      visibleModal: false,
-      editingRecord: null,
+      visiblePaymentModal: false,
+      payingRecord: null,
     }));
-    form.resetFields();
+    paymentForm.resetFields();
   };
 
   return (
     <MainPage loading={state.loading}>
+      <h1>{form.getFieldValue("id")+""}</h1>
       <div className="pageHeader">
         <Space>
           <div>Product {state.total}</div>
@@ -182,7 +212,6 @@ function Total_DuePage() {
               setFilter((pre) => ({ ...pre, brand: id }));
             }}
           />
-          {/* Added Select for Created By */}
           <Select
             allowClear
             showSearch
@@ -196,7 +225,7 @@ function Total_DuePage() {
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
           />
-          <Button onClick={onFilter} type="primary"  icon={<BsSearch/>}>
+          <Button onClick={onFilter} type="primary" icon={<BsSearch />}>
             Filter
           </Button>
         </Space>
@@ -204,6 +233,7 @@ function Total_DuePage() {
       </div>
       <Table
         className="custom-table"
+        rowClassName={() => "pos-row"}
         dataSource={state.list}
         columns={[
           {
@@ -237,14 +267,14 @@ function Total_DuePage() {
             ),
           },
           {
-            key: "province_name",
+            key: "address",
             title: (
               <div>
-                <div className="khmer-text">ខេត្ត</div>
-                <div className="english-text">Province</div>
+                <div className="khmer-text">អាសយដ្ឋាន</div>
+                <div className="english-text">Address</div>
               </div>
             ),
-            dataIndex: "province_name",
+            dataIndex: "address",
           },
           {
             key: "tel",
@@ -276,11 +306,7 @@ function Total_DuePage() {
               </div>
             ),
             dataIndex: "total_due",
-            render: (value) => (
-              <Tag color="red">
-                {formatCurrency(value)}
-              </Tag>
-            ),
+            render: (value) => <Tag color="red">{formatCurrency(value)}</Tag>,
           },
           {
             key: "create_by",
@@ -303,16 +329,12 @@ function Total_DuePage() {
             align: "center",
             render: (item, data, index) => (
               <Space>
+              
+               
                 <Button
                   type="primary"
-                  icon={<MdEdit />}
-                  onClick={() => onClickEdit(data)}
-                />
-                <Button
-                  type="primary"
-                  danger
-                  icon={<MdDelete />}
-                  onClick={() => onClickDelete(data)}
+                  icon={<MdPayment />}
+                  onClick={() => onClickPay(data)}
                 />
               </Space>
             ),
@@ -321,31 +343,23 @@ function Total_DuePage() {
       />
 
       <Modal
-        title="Edit Record"
-        visible={state.visibleModal}
-        onOk={handleEditSubmit}
-        onCancel={handleModalCancel}
+        title="Update Payment"
+        visible={state.visiblePaymentModal}
+        onOk={handlePaymentSubmit}
+        onCancel={handlePaymentModalCancel}
       >
-        <Form form={form} layout="vertical">
-          <Form.Item label="Customer Name" name="customer_name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Branch Name" name="branch_name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Province" name="province_name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Tel" name="tel">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Total Due" name="total_due">
-            <InputNumber style={{ width: '100%' }} />
+        <Form form={paymentForm} layout="vertical">
+          <Form.Item
+            label="Paid Amount"
+            name="paid_amount"
+            rules={[{ required: true, message: "Please enter the paid amount" }]}
+          >
+            <InputNumber style={{ width: '100%' }} min={0} />
           </Form.Item>
         </Form>
       </Modal>
     </MainPage>
   );
 }
- 
+
 export default Total_DuePage;

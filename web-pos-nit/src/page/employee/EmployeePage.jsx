@@ -116,16 +116,50 @@ function EmployeePage() {
     }
   };
   const ExportToExcel = () => {
-    const data = list.map((item) => ({
-      ...item,
-      gender: item.gender === 1 ? "Male" : "Female",
-      dob: formatDateClient(item.dob),
-      create_at: formatDateClient(item.create_at),
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Employee");
-    XLSX.writeFile(wb, "Employee_Data.xlsx");
+    if (list.length === 0) {
+      message.warning("No data available to export.");
+      return;
+    }
+  
+    // Show loading message
+    const hideLoadingMessage = message.loading(
+      <div className="khmer-text">សូមមេត្តារងចាំ...</div>,
+      0 // 0 means the message will not auto-close
+    );
+  
+    // Simulate a delay for testing
+    setTimeout(() => {
+      try {
+        // Prepare data for export
+        const data = list.map((item) => ({
+          ...item,
+          gender: item.gender === 1 ? "Male" : "Female",
+          dob: formatDateClient(item.dob),
+          create_at: formatDateClient(item.create_at),
+        }));
+  
+        // Create a worksheet and workbook
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Employee");
+  
+        // Write the file
+        XLSX.writeFile(wb, "Employee_Data.xlsx");
+  
+        // Hide the loading message
+        hideLoadingMessage();
+  
+        // Show success message
+        message.success("Export completed successfully!");
+      } catch (error) {
+        // Hide the loading message in case of error
+        hideLoadingMessage();
+  
+        // Show error message
+        message.error("Failed to export data. Please try again.");
+        console.error("Export error:", error);
+      }
+    }, 2000); // Simulate a 2-second delay
   };
   return (
     <MainPage loading={loading}>
@@ -316,6 +350,7 @@ function EmployeePage() {
     </Form>
 </Modal>
       <Table
+    rowClassName={() => "pos-row"}
     dataSource={list}
     columns={[
         {

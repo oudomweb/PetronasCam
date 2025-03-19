@@ -18,6 +18,7 @@ const AboutHomepage = () => {
 
   return (
     <div className="about-container">
+      {/* Navbar */}
       <nav className="navbar">
         <h1 className="logo">PETRONAS CAMBODIA</h1>
         <div className="nav-links">
@@ -31,6 +32,8 @@ const AboutHomepage = () => {
           </button>
         </div>
       </nav>
+
+      {/* Hero Section with Carousel */}
       <Carousel autoplay >
         {[Banner1, Banner5, Banner3, Banner4].map((image, index) => (
           <div key={index} className="carousel-slide">
@@ -38,6 +41,8 @@ const AboutHomepage = () => {
           </div>
         ))}
       </Carousel>
+
+      {/* Initiatives Section */}
       <div className="initiatives">
         {[Banner2, Banner3, Banner4, Banner5, Banner6, Banner7].map((banner, index) => (
           <div key={index} className="initiative">
@@ -48,6 +53,7 @@ const AboutHomepage = () => {
         ))}
       </div>
 
+      {/* Footer */}
       <footer className="footer">
         <p>&copy; 2025 PETRONAS</p>
         <div className="footer-links">

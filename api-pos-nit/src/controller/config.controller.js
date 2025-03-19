@@ -70,13 +70,19 @@ exports.getList = async (req, res) => {
       { label: "PETRONAS CAMBODIA CO., LTD", value: "petronas-cambodia-ltd", country: "Cambodia" }
     ];
     
-    const [expense_type] = await db.query("SELECT * FROM expense_type");
+    // const [expense_type] = await db.query("SELECT * FROM expense_type");
+
+    const [expense_type] = await db.query(
+      "select id as value, name as label from expense_type"
+    );
+
     const brand = [
       
         { label: "Petronas Cambodia", value: "petronas-cambodia", country: "Cambodia" },
         { label: "Petronas Malaysia", value: "petronas-malaysia", country: "Malaysia" }
       ];
       const branch_name = [
+        { label: "ស្នាក់ការកណ្តាល", value: "ស្នាក់ការកណ្តាល" },
         { label: "Phnom Penh - ភ្នំពេញ", value: "Phnom Penh" },
         { label: "Siem Reap - សៀមរាប", value: "Siem Reap" },
         { label: "Battambang - បាត់ដំបង", value: "Battambang" },

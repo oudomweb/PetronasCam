@@ -327,6 +327,8 @@ function OrderPage() {
       <div>
         <Tag className={Style.Tag_Style}>
           <Table
+            rowClassName={() => "pos-row"}
+
             dataSource={list}
             columns={[
               {

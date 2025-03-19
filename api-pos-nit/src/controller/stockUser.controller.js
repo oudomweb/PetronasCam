@@ -327,7 +327,7 @@ exports.gettotal_due = async (req, res) => {
         c.name AS customer_name,
         u.branch_name AS branch_name,
         u.tel AS tel,
-        r.name AS province_name,
+        u.address AS address,
         SUM(o.total_amount - o.paid_amount) AS total_due  -- Sum total_due for each customer
       FROM \`order\` o
       JOIN customer c ON o.customer_id = c.id
@@ -361,3 +361,48 @@ exports.gettotal_due = async (req, res) => {
 
 
 
+exports.updateTotalDue = async (req, res) => {
+  try {
+    console.log("Request body:", req.body); // Log the request body for debugging
+    
+    const { id, paid_amount } = req.body;
+
+    // Better validation with specific error messages
+    if (id === undefined || id === null) {
+      return res.status(400).json({ error: "Missing required field: id" });
+    }
+    
+    if (paid_amount === undefined || paid_amount === null) {
+      return res.status(400).json({ error: "Missing required field: paid_amount" });
+    }
+    
+    // Convert paid_amount to number to ensure it's a valid number
+    const paidAmountNum = Number(paid_amount);
+    if (isNaN(paidAmountNum)) {
+      return res.status(400).json({ error: "paid_amount must be a valid number" });
+    }
+
+    // Construct the SQL query to update the paid_amount
+    const sql = `
+      UPDATE \`order\`
+      SET paid_amount = :paid_amount
+      WHERE id = :id;
+    `;
+
+    // Execute the update query
+    const [result] = await db.query(sql, { 
+      id, 
+      paid_amount: paidAmountNum 
+    });
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Order not found with ID: " + id });
+    }
+
+    res.json({ success: true, message: "Payment updated successfully" });
+  } catch (error) {
+    console.error("Error in updateTotalDue:", error);
+    logError("user_stock.updateTotalDue", error, res);
+    return res.status(500).json({ error: "Server error processing payment update" });
+  }
+};

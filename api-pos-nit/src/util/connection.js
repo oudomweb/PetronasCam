@@ -38,3 +38,4 @@ module.exports = mysql.createPool({
   port: config.db.PORT,
   namedPlaceholders: true,
 });
+ 

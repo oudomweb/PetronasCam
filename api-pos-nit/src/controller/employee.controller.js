@@ -28,9 +28,10 @@ exports.create = async (req, res) => {
       name,
       position,
       salary,
-     
+      gender,
       tel,
       email,
+      code,
       address,
       website,
       note,
@@ -38,18 +39,19 @@ exports.create = async (req, res) => {
 
     const sql = `
       INSERT INTO employee 
-        (name, position, salary, tel, email, address, website, note, create_by, create_at) 
+        (name, position, salary,gender , tel, email, code,address, website, note, create_by, create_at) 
       VALUES 
-        (:name, :position, :salary, :tel, :email, :address, :website, :note, :create_by, NOW())
+        (:name, :position, :salary,:gender , :tel, :email,:code ,:address, :website, :note, :create_by, NOW())
     `;
 
     const [data] = await db.query(sql, {
       name,
       position,
       salary,
-     
+      gender ,
       tel,
       email,
+      code,
       address,
       website,
       note,
@@ -72,6 +74,7 @@ exports.update = async (req, res) => {
       name,
       position,
       salary,
+      gender ,
       code,
       tel,
       email,
@@ -86,6 +89,7 @@ exports.update = async (req, res) => {
         name = :name, 
         position = :position, 
         salary = :salary, 
+        gender = :gender, 
         code = :code, 
         tel = :tel, 
         email = :email, 
@@ -100,6 +104,7 @@ exports.update = async (req, res) => {
       name,
       position,
       salary,
+      gender,
       code,
       tel,
       email,

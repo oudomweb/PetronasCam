@@ -14,7 +14,8 @@ export const configStore = create((set) => ({
     user:null,
     branch_name:null,
     createby:null,
-    product:null
+    product:null,
+    expense_type:null
   },
   setConfig: (params) =>
     set((state) => ({

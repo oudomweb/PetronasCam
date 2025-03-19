@@ -580,6 +580,7 @@ function ProductPage() {
 
       <Table
         className="custom-table"
+        rowClassName={() => "pos-row"}
         dataSource={state.list}
         pagination={{
           pageSize: 2, // ចំនួនធាតុក្នុងមួយទំព័រ

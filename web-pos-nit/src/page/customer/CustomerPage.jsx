@@ -219,6 +219,7 @@ function CustomerPage() {
   )}
       </div>
       <Table
+        rowClassName={() => "pos-row"}
         rowKey="id"
         dataSource={list}
         columns={[

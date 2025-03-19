@@ -29,16 +29,15 @@ const PrintInvoice = React.forwardRef((props, ref) => {
     return Math.round(number).toLocaleString();
   };
 
-  function formatDate(date) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(date).toLocaleDateString('en-GB', options);
-  }
-  
-
-  function formatOrderNumber(orderNo) {
-    return `FS-${orderNo}`;  // Adjust 'FS-' based on the convention you use for fuel sales.
-  }
-  
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   const calculateTax = () => {
     const subtotal = parseFloat(objSummary.sub_total) || 0;
@@ -76,8 +75,10 @@ const PrintInvoice = React.forwardRef((props, ref) => {
           <p className="khmer-text mt-2">
             ថ្ងៃប្រគល់ទំនិញ: {formatDate(objSummary.order_date)}
           </p>
-          <p className="khmer-text mt-2">ថ្ងៃបញ្ជាទិញ: {formatDateClient(objSummary.order_date)}</p>
-          <p className="khmer-text mt-2">លេខបញ្ជាទិញ: {formatOrderNumber(objSummary.order_no)}</p>
+          <p className="khmer-text mt-2"> ថ្ងៃបញ្ជាទិញ: {formatDateClient(objSummary.order_date)}</p>
+          <p className="khmer-text mt-2">
+            លេខបញ្ជាទិញ: {`#SA-${objSummary.order_no}`}
+          </p>
 
           <p className="khmer-text mt-2">លេខបណ្ណបញ្ចេញទំនិញ:...................</p>
         </div>

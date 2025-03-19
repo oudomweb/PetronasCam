@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Dropdown, Layout, Menu, Tag, theme } from "antd";
+import { Breadcrumb, Button, Dropdown, Input, Layout, Menu, Tag, theme } from "antd";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./MainLayout.css";
 import logo from "../../assets/petronas.png";
@@ -29,7 +29,8 @@ import {
   CreditCardOutlined,
   SmileOutlined,
 } from "@ant-design/icons";
-const { Content, Footer, Sider } = Layout;
+import { Config } from "../../util/config";
+const { Header, Content, Footer, Sider } = Layout;
 <div>
   <Tag>V 1.0.1</Tag>
 </div>
@@ -102,6 +103,7 @@ const items_menu = [
     icon: <UserOutlined />,
     className: "list-Customer-item khmrt-branch",
   },
+ 
   {
     label: "ចំណាយ",
     icon: <DollarOutlined />,
@@ -110,6 +112,12 @@ const items_menu = [
       {
         key: "expanse",
         label: "ចំណាយ",
+        icon: <DollarOutlined />,
+        className: "expense-item khmrt-branch",
+      },
+      {
+        key: "expanse_type",
+        label: "ប្រភេទនៃការចំណាយ",
         icon: <DollarOutlined />,
         className: "expense-item khmrt-branch",
       },
@@ -263,7 +271,13 @@ const MainLayout = () => {
     {
       key: "1",
       label: (
-        <a disabled target="_blank" rel="noopener noreferrer">
+        <a
+          onClick={(e) => {
+            e.preventDefault(); // Prevent default link behavior
+            // Use the navigate hook
+            navigate('/profile'); // Navigate to the profile page
+          }}
+        >
           Profile
         </a>
       ),
@@ -338,13 +352,26 @@ const MainLayout = () => {
               menu={{
                 items: itemsDropdown,
                 onClick: (event) => {
-                  if (event.key == "logout") {
+                  if (event.key === "logout") {
                     onLoginOut();
+                  } else if (event.key === "profile") {
+                    navigate('/profile');
+                  } else if (event.key === "change_password") {
+                    navigate('/change-password');
                   }
                 },
               }}
+              trigger={['click']}
+              placement="bottomRight"
             >
-              <img className="img-user" src={ImgUser} alt="Logo" />
+              <div className="flex items-center cursor-pointer">
+                <img
+                  className="img-user rounded-full border-2 border-white hover:border-blue-300 transition-all"
+                  src={profile?.profile_image ? Config.getFullImagePath(profile.profile_image) : ImgUser}
+                  alt={profile?.name || "User"}
+                />
+                <span className="ml-2 text-white text-sm hidden md:inline">▼</span>
+              </div>
             </Dropdown>
           </div>
         </div>
@@ -376,3 +403,8 @@ const MainLayout = () => {
   );
 };
 export default MainLayout;
+
+
+
+
+

@@ -24,47 +24,58 @@ import ReportPurchase_Summary from "./page/report/ReportPurchase_Summary";
 import Top_Sales from "./page/top_sale/Top_Sales";
 import Total_DuePage from "./page/total_due/Total_DuePage";
 import AboutHomepage from "./page/about/Aboutpage";
+import ProfilePage from "./page/user/ProfilePage";
+import ExpanseTypePage from "./page/expanse/ExpanseTypePage";
 
 
 function App() {
+  const MainLayoutWrapper = () => (
+    <MainLayoutAuth>
+      <Outlet />
+    </MainLayoutAuth>
+  );
   return (
-    <BrowserRouter>
-      <Routes >
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/employee" element={<EmployeePage />} />
-          <Route path="/customer" element={<CustomerPage />} />
-          <Route path="/invoices" element={<PosPage />} />
-          <Route path="/category" element={<CategoryPage />} />
-          <Route path="/order" element={<OrderPage />} />
-          <Route path="/user" element={<UserPage />} />
-          <Route path="/product" element={<ProductPage />} />
-          <Route path="/role" element={<RolePage />} />
-          <Route path="/supplier" element={<SupplierPage />} />
-          <Route path="/total_due" element={<Total_DuePage />} />
-          
-
-          <Route path="/expanse" element={<ExpansePage />} />
-          <Route path="/report_Sale_Summary" element={<ReportSale_Summary />} />
-          <Route path="/report_Expense_Summary" element={<ReportExpense_Summary/>} />
-          <Route path="/report_Customer" element={<ReportCustomer_Summary/>} />
-          <Route path="/purchase_Summary" element={<ReportPurchase_Summary/>} />
-          <Route path="/Top_Sale" element={<Top_Sales/>} />
-          
-          
+   
+      <BrowserRouter>
+        <Routes >
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/employee" element={<EmployeePage />} />
+            <Route path="/customer" element={<CustomerPage />} />
+            <Route path="/invoices" element={<PosPage />} />
+            <Route path="/category" element={<CategoryPage />} />
+            <Route path="/order" element={<OrderPage />} />
+            <Route path="/user" element={<UserPage />} />
+            <Route path="/product" element={<ProductPage />} />
+            <Route path="/role" element={<RolePage />} />
+            <Route path="/supplier" element={<SupplierPage />} />
+            <Route path="/total_due" element={<Total_DuePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
 
 
-          <Route path="*" element={<h1>404-Route Not Found!</h1>} />
-        </Route>
+            <Route path="/expanse" element={<ExpansePage />} />
+            <Route path="/expanse_type" element={<ExpanseTypePage />} />
+            <Route path="/report_Sale_Summary" element={<ReportSale_Summary />} />
+            <Route path="/report_Expense_Summary" element={<ReportExpense_Summary />} />
+            <Route path="/report_Customer" element={<ReportCustomer_Summary />} />
+            <Route path="/purchase_Summary" element={<ReportPurchase_Summary />} />
+            <Route path="/Top_Sale" element={<Top_Sales />} />
 
-        <Route element={<MainLayoutAuth />}>
-          <Route path="/about" element={<AboutHomepage />} />
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LogingPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+
+
+
+            <Route path="*" element={<h1>404-Route Not Found!</h1>} />
+          </Route>
+
+          <Route element={<MainLayoutAuth />}>
+            <Route path="/about" element={<AboutHomepage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LogingPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+   
   );
 }
 

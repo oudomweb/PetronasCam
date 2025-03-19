@@ -99,7 +99,7 @@ require("./src/route/StockUser.route")(app);
 // app.listen(PORT, () => {
 //   console.log("http://localhost:" + PORT);
 // });
-const PORT = 8081;
+const PORT = 8080;
 app.listen(PORT, () => {
   console.log("http://localhost:" + PORT);
 });

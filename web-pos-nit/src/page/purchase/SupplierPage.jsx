@@ -282,7 +282,8 @@ function SupplierPage() {
         </Form.Item>
     </Form>
 </Modal>
-      <Table style={{fontSize: '80px', fontWeight: "bold", color: "#333"}}
+      <Table
+  rowClassName={() => "pos-row"}
   dataSource={state.list}
   columns={[
     {
