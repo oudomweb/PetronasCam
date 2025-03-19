@@ -15,16 +15,17 @@ import {
 import { CiSearch } from "react-icons/ci";
 import { MdOutlineCreateNewFolder } from "react-icons/md";
 import { IoPersonAddSharp } from "react-icons/io5";
-import { isPermission, request } from "../../util/helper";
+import { formatDateClient, isPermission, request } from "../../util/helper";
 import { MdDelete, MdEdit, MdPerson } from "react-icons/md";
 import MainPage from "../../component/layout/MainPage";
 import { getProfile } from "../../store/profile.store";
 import { configStore } from "../../store/configStore";
 import { LuUserRoundSearch } from "react-icons/lu";
+import dayjs from "dayjs";
 
 function CustomerPage() {
   const { config } = configStore();
-  
+
   const [form] = Form.useForm();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -136,8 +137,9 @@ function CustomerPage() {
           setState((prev) => ({ ...prev, visibleModal: false }));
           getList();
         } else {
-          message.error("Failed to create customer.");
+          message.error("This phone number already exists. Please use a different number.");
         }
+
       }
     } catch (error) {
       console.error("Validation or API error:", error);
@@ -208,15 +210,15 @@ function CustomerPage() {
             Filter
           </Button>
         </Space>
-        {isPermission ("customer.create") && (
-        <Button type="primary" onClick={onClickAssignToUser} icon={<IoPersonAddSharp />}>
-          CREATE CUSTOMER TO USER
-        </Button>)}
-        {isPermission("customer.create") && ( 
-        <Button type="primary" onClick={onClickAddBtn} icon={<MdOutlineCreateNewFolder />}>
-          NEW
-        </Button>
-  )}
+        {isPermission("customer.create") && (
+          <Button type="primary" onClick={onClickAssignToUser} icon={<IoPersonAddSharp />}>
+            CREATE CUSTOMER TO USER
+          </Button>)}
+        {isPermission("customer.create") && (
+          <Button type="primary" onClick={onClickAddBtn} icon={<MdOutlineCreateNewFolder />}>
+            NEW
+          </Button>
+        )}
       </div>
       <Table
         rowClassName={() => "pos-row"}
@@ -292,6 +294,19 @@ function CustomerPage() {
             ellipsis: true,
           },
           {
+            key: "created_at",
+            title: (
+              <div>
+                <div className="khmer-text">កាលបរិច្ឆេទបង្កើត</div>
+                <div className="english-text">Created Date</div>
+              </div>
+            ),
+            dataIndex: "created_at", // Match your database field
+            render: (value) => dayjs(value).format("YYYY-MM-DD h:mm A"), // Format date
+          },
+
+
+          {
             key: "status",
             title: (
               <div>
@@ -328,7 +343,7 @@ function CustomerPage() {
             ],
             onFilter: (value, record) => record.status === value,
           },
-          
+
           {
             key: "action",
             title: (
@@ -341,21 +356,21 @@ function CustomerPage() {
             width: 120,
             render: (_, record) => (
               <Space>
-                {isPermission("customer.update")&&(
-                <Button
-                  type="primary"
-                  icon={<MdEdit />}
-                  onClick={() => onClickEdit(record)}
-                  size="small"
-                />)}
-                {isPermission("customer.update")&&(
-                <Button
-                  type="primary"
-                  danger
-                  icon={<MdDelete />}
-                  onClick={() => onClickDelete(record)}
-                  size="small"
-                />)}
+                {isPermission("customer.update") && (
+                  <Button
+                    type="primary"
+                    icon={<MdEdit />}
+                    onClick={() => onClickEdit(record)}
+                    size="small"
+                  />)}
+                {isPermission("customer.update") && (
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<MdDelete />}
+                    onClick={() => onClickDelete(record)}
+                    size="small"
+                  />)}
               </Space>
             ),
           },

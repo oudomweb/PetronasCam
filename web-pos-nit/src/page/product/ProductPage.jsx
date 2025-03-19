@@ -264,6 +264,7 @@ function ProductPage() {
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   };
+  
 
   const onValuesChange = (changedValues, allValues) => {
     if (changedValues.qty || changedValues.unit_price || changedValues.discount || changedValues.actual_price) {

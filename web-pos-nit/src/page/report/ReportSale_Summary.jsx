@@ -1,104 +1,66 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Chart } from "react-google-charts";
 import { request } from "../../util/helper";
-import { Button, DatePicker, Select, Space, Table, Typography } from "antd";
-import { DownloadOutlined, PrinterOutlined, BarChartOutlined, LineChartOutlined } from "@ant-design/icons";
+import { Button, DatePicker, Select, Space, Table, Tag } from "antd";
+import { PrinterOutlined, FilePdfOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
 import { configStore } from "../../store/configStore";
-import html2canvas from "html2canvas";
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
-const { Title } = Typography;
-const { RangePicker } = DatePicker;
-
-export const chartOptions = {
+export const options = {
   curveType: "function",
   legend: { position: "bottom" },
-  colors: ["#1890ff", "#52c41a", "#fa8c16"],
-  backgroundColor: "#ffffff",
-  chartArea: { width: "85%", height: "70%" },
-  hAxis: {
-    title: "Date",
-    gridlines: { color: "#f0f0f0" }
-  },
-  vAxis: {
-    title: "Sales ($)",
-    gridlines: { color: "#f0f0f0" }
-  },
-  animation: {
-    startup: true,
-    duration: 1000,
-    easing: "out"
-  }
 };
 
 function ReportSale_Summary() {
   const { config } = configStore();
   const [loading, setLoading] = useState(false);
-  const [chartType, setChartType] = useState("LineChart");
   const reportRef = useRef(null);
-  const chartRef = useRef(null);
-  
-  const today = dayjs();
-  const thirtyDaysAgo = dayjs().subtract(29, "day");
-  
   const [filter, setFilter] = useState({
-    from_date: thirtyDaysAgo,
-    to_date: today,
+    from_date: dayjs().subtract(29, "d"),
+    to_date: dayjs(),
     category_id: null,
     brand_id: null
   });
-  
   const [state, setState] = useState({
-    Data_Chat: [["Day", "Sale"]],
+    Data_Chat: [],
     list: [],
   });
-  
+
   useEffect(() => {
     getList();
   }, []);
-  
+
   const onreset = () => {
-    const resetFilter = {
-      from_date: thirtyDaysAgo,
-      to_date: today,
+    setFilter({
+      from_date: dayjs().subtract(29, "d"),
+      to_date: dayjs(),
       category_id: null,
       brand_id: null,
-    };
-    
-    setFilter(resetFilter);
-    
+    });
     getList({
-      from_date: thirtyDaysAgo.format("YYYY-MM-DD"),
-      to_date: today.format("YYYY-MM-DD"),
+      from_date: dayjs().subtract(29, "d").format("YYYY-MM-DD"),
+      to_date: dayjs().format("YYYY-MM-DD"),
       category_id: null,
       brand_id: null,
     });
   };
-  
+
   const getList = async (customFilter = null) => {
     try {
       setLoading(true);
-      
-      const fromDate = customFilter?.from_date || 
-                      (filter.from_date ? filter.from_date.format("YYYY-MM-DD") : thirtyDaysAgo.format("YYYY-MM-DD"));
-      const toDate = customFilter?.to_date || 
-                    (filter.to_date ? filter.to_date.format("YYYY-MM-DD") : today.format("YYYY-MM-DD"));
-      
       const param = customFilter || {
-        from_date: fromDate,
-        to_date: toDate,
+        from_date: dayjs(filter.from_date).format("YYYY-MM-DD"),
+        to_date: dayjs(filter.to_date).format("YYYY-MM-DD"),
         category_id: filter.category_id,
         brand_id: filter.brand_id,
       };
-      
-      console.log("API params:", param); // Debugging
-      
       const res = await request("report_Sale_Sammary", "get", param);
-      
-      if (res && res.list && Array.isArray(res.list) && res.list.length > 0) {
+      if (res) {
         const listTMP = [["Day", "Sale"]];
-        res.list.forEach((item) => {
-          listTMP.push([item.order_date, Number(item.total_amount) || 0]);
+        res.list?.forEach((item) => {
+          listTMP.push([item.order_date, Number(item.total_amount)]);
         });
         setState({
           Data_Chat: listTMP,
@@ -112,176 +74,101 @@ function ReportSale_Summary() {
       }
     } catch (error) {
       console.error("Failed to fetch sales summary:", error);
-      setState({
-        Data_Chat: [["Day", "Sale"]],
-        list: [],
-      });
     } finally {
       setLoading(false);
     }
   };
-  
-  const downloadChart = () => {
-    if (chartRef.current) {
-      try {
-        html2canvas(chartRef.current).then(canvas => {
-          const imageData = canvas.toDataURL("image/png");
-          const link = document.createElement("a");
-          link.href = imageData;
-          link.download = `sales_report_${dayjs().format("YYYY-MM-DD")}.png`;
-          link.click();
-        }).catch(error => {
-          console.error("Failed to generate chart image:", error);
-        });
-      } catch (error) {
-        console.error("Error in downloadChart:", error);
-      }
-    } else {
-      console.error("Chart reference is undefined.");
+
+  // Format number as currency
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2 
+    }).format(value);
+  };
+
+  // Handle print functionality
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Handle PDF download
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+    
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgWidth = 280;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.save(`Sales_Report_${dayjs().format('YYYY-MM-DD')}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
     }
   };
-  
-  const printReport = () => {
-    if (reportRef.current) {
-      const printWindow = window.open('', '_blank');
-      
-      const styles = `
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1 { color: #1890ff; text-align: center; }
-        .date-range { text-align: center; margin-bottom: 20px; color: #666; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #f0f0f0; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
-        td { padding: 8px; border-bottom: 1px solid #ddd; }
-        .total-amount { font-weight: bold; color: green; }
-        .order-date { color: #1890ff; }
-      `;
-      
-      let chartImage = '';
-      if (chartRef.current && state.Data_Chat.length > 1) {
-        const chartContainer = chartRef.current.querySelector('div');
-        if (chartContainer) {
-          html2canvas(chartContainer).then(canvas => {
-            chartImage = `<img src="${canvas.toDataURL()}" style="max-width: 100%; margin: 20px 0;" />`;
-            
-            printWindow.document.body.innerHTML = getReportHTML(chartImage);
-            printWindow.document.close();
-            printWindow.focus();
-            printWindow.print();
-          });
-        }
-      } else {
-        printWindow.document.open();
-        printWindow.document.write(getReportHTML());
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-      }
-      
-      function getReportHTML(chartImg = '') {
-        return `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>Sales Report</title>
-              <style>${styles}</style>
-            </head>
-            <body>
-              <h1>Sales Performance Report</h1>
-              <div class="date-range">
-                From: ${filter.from_date?.format("DD/MM/YYYY") || thirtyDaysAgo.format("DD/MM/YYYY")} 
-                To: ${filter.to_date?.format("DD/MM/YYYY") || today.format("DD/MM/YYYY")}
-              </div>
-              
-              ${chartImg}
-              
-              <h2>Sales Details</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order Date</th>
-                    <th>Total Quantity</th>
-                    <th>Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${state.list.map(item => `
-                    <tr>
-                      <td class="order-date">${item.order_date}</td>
-                      <td>${item.total_qty} Liter</td>
-                      <td class="total-amount">$${item.total_amount}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </body>
-          </html>
-        `;
-      }
-    }
-  };
-  
-  const toggleChartType = () => {
-    setChartType(chartType === "LineChart" ? "BarChart" : "LineChart");
-  };
-  
-  const handleDateRangeChange = (dates) => {
-    if (dates && dates.length === 2) {
-      setFilter((prev) => ({
-        ...prev,
-        from_date: dates[0],
-        to_date: dates[1]
-      }));
-    } else {
-      setFilter((prev) => ({
-        ...prev,
-        from_date: thirtyDaysAgo,
-        to_date: today
-      }));
-    }
-  };
-  
+
   return (
-    <div ref={reportRef} style={{ padding: "20px", backgroundColor: "#f7f7f7", borderRadius: "8px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <Title level={3} style={{ margin: 0, color: "#1890ff" }}>Sales Performance Dashboard</Title>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+        <h1 style={{ marginRight: "20px", fontWeight: "bold" }}>Sales Performance Chart</h1>
         <Space>
           <Button 
-            icon={<DownloadOutlined />} 
-            onClick={downloadChart}
-            style={{ backgroundColor: "#52c41a", color: "white" }}
-          >
-            Download Chart
-          </Button>
-          <Button 
             icon={<PrinterOutlined />} 
-            onClick={printReport}
-            style={{ backgroundColor: "#fa8c16", color: "white" }}
+            onClick={handlePrint}
+            loading={loading}
           >
-            Print Report
+            Print
           </Button>
           <Button 
-            icon={chartType === "LineChart" ? <BarChartOutlined /> : <LineChartOutlined />} 
-            onClick={toggleChartType}
+            type="primary" 
+            icon={<FilePdfOutlined />} 
+            onClick={handleDownloadPDF}
+            loading={loading}
           >
-            Chart Type: {chartType === "LineChart" ? "Line" : "Bar"}
+            Download PDF
           </Button>
         </Space>
       </div>
-      
-      <div style={{ backgroundColor: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)", marginBottom: "20px" }}>
-        <Space wrap style={{ marginBottom: "20px" }}>
-          <RangePicker
-            format="DD/MM/YYYY"
-            allowClear={false}
+
+      <div style={{ display: "flex", color: "#333", marginBottom: "10px", marginRight: "10px" }}>
+        <Space>
+          <DatePicker.RangePicker
             value={[filter.from_date, filter.to_date]}
-            onChange={handleDateRangeChange}
+            loading={loading}
+            allowClear={false}
+            defaultValue={[
+              dayjs(filter.from_date, "DD/MM/YYYY"),
+              dayjs(filter.to_date, "DD/MM/YYYY")
+            ]}
+            format={"DD/MM/YYYY"}
+            onChange={(value) => {
+              setFilter((prev) => ({
+                ...prev,
+                from_date: value[0],
+                to_date: value[1]
+              }));
+            }}
           />
           <Select
             allowClear
             placeholder="Select Category"
             value={filter.category_id}
             options={config?.category}
-            style={{ minWidth: "150px" }}
             onChange={(value) => {
               setFilter((prev) => ({
                 ...prev,
@@ -294,7 +181,6 @@ function ReportSale_Summary() {
             placeholder="Select Brand"
             value={filter.brand_id}
             options={config?.brand}
-            style={{ minWidth: "150px" }}
             onChange={(value) => {
               setFilter((prev) => ({
                 ...prev,
@@ -306,84 +192,144 @@ function ReportSale_Summary() {
             Reset Filters
           </Button>
           <Button type="primary" onClick={() => getList()} loading={loading}>
-            Apply Filters
+            Filter
           </Button>
         </Space>
-        
-        <div ref={chartRef} style={{ backgroundColor: "white", padding: "10px", borderRadius: "8px", minHeight: "400px" }}>
-          {state.Data_Chat.length > 1 ? (
-            <Chart
-              chartType={chartType}
-              width="100%"
-              height="400px"
-              data={state.Data_Chat}
-              options={chartOptions}
-              legendToggle
-            />
-          ) : (
-            <div style={{ textAlign: "center", marginTop: "20px", color: "#888", height: "400px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div>
-                <div style={{ fontSize: "24px", marginBottom: "10px" }}>No data available</div>
-                <div>Try adjusting your filters to see sales data</div>
-              </div>
-            </div>
-          )}
+      </div>
+
+      <div ref={reportRef} className="report-content">
+        <div className="report-header" style={{ textAlign: "center", marginBottom: "20px" }}>
+          <h2>Sales Report</h2>
+          <p>
+            {dayjs(filter.from_date).format("MMM DD, YYYY")} - {dayjs(filter.to_date).format("MMM DD, YYYY")}
+          </p>
+        </div>
+
+        {state.Data_Chat.length > 1 ? (
+          <Chart
+            chartType="LineChart"
+            width="100%"
+            height="400px"
+            data={state.Data_Chat}
+            options={{
+              ...options,
+              title: "Daily Sales Performance",
+              hAxis: { title: "Date" },
+              vAxis: { title: "Sales Amount ($)" },
+              colors: ["#3366cc"],
+              chartArea: { width: "80%", height: "70%" }
+            }}
+            legendToggle
+          />
+        ) : (
+          <div style={{ textAlign: "center", marginTop: "20px", color: "#888", height: "400px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            No data available for the selected filters.
+          </div>
+        )}
+
+        <div style={{ width: "100%", marginTop: "20px" }}>
+          <Table
+            style={{
+              width: "100%",
+              backgroundColor: "#ffffff",
+              borderRadius: "12px",
+              overflow: "hidden",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+              padding: "10px",
+              boxSizing: "border-box",
+            }}
+            loading={loading}
+            dataSource={state.list}
+            columns={[
+              {
+                key: "title",
+                title: "Order Date",
+                dataIndex: "order_date",
+                render: (value) => (
+                  <Tag color="blue" style={{ fontSize: "14px" }}>
+                    {value}
+                  </Tag>
+                ),
+              },
+              {
+                key: "totalqty",
+                title: "Total QTY",
+                dataIndex: "total_qty",
+                render: (value) => (
+                  <Tag
+                    color={Number(value) > 2 ? "blue" : Number(value) > 1 ? "green" : "pink"}
+                    style={{ fontSize: "14px" }}
+                  >
+                    {Number(value).toLocaleString()} Liter
+                  </Tag>
+                ),
+              },
+              {
+                key: "totalamount",
+                title: "Total Amount",
+                dataIndex: "total_amount",
+                render: (value) => (
+                  <div>
+                    <Tag
+                      color={Number(value) > 200 ? "blue" : Number(value) > 100 ? "green" : "pink"}
+                      style={{ fontSize: "14px" }}
+                    >
+                      {formatCurrency(value)}
+                    </Tag>
+                  </div>
+                ),
+              },
+            ]}
+            pagination={false}
+            summary={(pageData) => {
+              let totalQty = 0;
+              let totalAmount = 0;
+
+              pageData.forEach(({ total_qty, total_amount }) => {
+                totalQty += Number(total_qty || 0);
+                totalAmount += Number(total_amount || 0);
+              });
+
+              return (
+                <>
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0}>
+                      <strong>Total</strong>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={1}>
+                      <strong>{totalQty.toLocaleString()} Liter</strong>
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={2}>
+                      <strong>{formatCurrency(totalAmount)}</strong>
+                    </Table.Summary.Cell>
+                  </Table.Summary.Row>
+                </>
+              );
+            }}
+          />
         </div>
       </div>
-      
-      <div style={{ backgroundColor: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-        <Title level={4} style={{ marginBottom: "20px", color: "#1890ff" }}>Sales Details</Title>
-        <Table
-          style={{
-            width: "100%",
-            backgroundColor: "#ffffff",
-            borderRadius: "8px",
-            overflow: "hidden",
-          }}
-          dataSource={state.list}
-          columns={[
-            {
-              key: "order_date",
-              title: "Order Date",
-              dataIndex: "order_date",
-              render: (value) => (
-                <div style={{ backgroundColor: "#1890ff", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block" }}>
-                  {value}
-                </div>
-              ),
-            },
-            {
-              key: "total_qty",
-              title: "Total QTY",
-              dataIndex: "total_qty",
-              render: (value) => (
-                <div style={{ backgroundColor: "#52c41a", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block" }}>
-                  {value} Liter
-                </div>
-              ),
-            },
-            {
-              key: "total_amount",
-              title: "Total Amount",
-              dataIndex: "total_amount",
-              render: (value) => (
-                <div style={{ backgroundColor: "#722ed1", color: "white", padding: "4px 8px", borderRadius: "4px", display: "inline-block", fontWeight: "bold" }}>
-                  ${value}
-                </div>
-              ),
-            },
-          ]}
-          pagination={{
-            pageSize: 7,
-            showSizeChanger: false,
-            showTotal: (total) => `Total ${total} records`,
-            style: { marginTop: "16px" }
-          }}
-          loading={loading}
-          rowKey="order_date"
-          locale={{ emptyText: "No data available" }}
-        />
-      </div>
+
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .report-content, .report-content * {
+            visibility: visible;
+          }
+          .report-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .ant-tag {
+            border: 1px solid #d9d9d9 !important;
+            padding: 4px 8px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

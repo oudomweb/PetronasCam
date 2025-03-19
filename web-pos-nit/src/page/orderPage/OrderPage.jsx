@@ -146,14 +146,21 @@ function OrderPage() {
         <Space>
           <div>
             <div style={{ fontWeight: "bold" }}>Order</div>
-            <div>Total:
+            <div>
+              Total:
               <Tag color="green">
                 {summary?.total_order ?? 0} order
               </Tag>
               <Tag color="blue">
-                {summary?.total_amount ?? 0}$
+                {summary?.total_amount
+                  ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }).format(summary.total_amount)
+                  : "$0.00"}
               </Tag>
             </div>
+
           </div>
           <Input.Search
             onChange={(value) =>

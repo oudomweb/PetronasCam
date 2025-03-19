@@ -191,8 +191,25 @@ function PosPage() {
 
 
 
+  // const handleClearCart = () => {
+  //   setState((p) => ({ ...p, cart_list: [] }));
+  //   setObjSummary((p) => ({
+  //     ...p,
+  //     sub_total: 0,
+  //     total_qty: 0,
+  //     save_discount: 0,
+  //     tax: 10,
+  //     total: 0,
+  //     total_paid: 0,
+  //   }));
+  // };
   const handleClearCart = () => {
-    setState((p) => ({ ...p, cart_list: [] }));
+    setState((p) => ({
+      ...p,
+      cart_list: [],
+      customers: [] // Clear customers list if needed
+    }));
+
     setObjSummary((p) => ({
       ...p,
       sub_total: 0,
@@ -201,9 +218,16 @@ function PosPage() {
       tax: 10,
       total: 0,
       total_paid: 0,
+      customer_id: null, // Clear selected customer
+      payment_method: null, // Clear selected payment method
+      user_id: null, // Clear selected location/branch
+      remark: null, // Clear remark
     }));
-  };
 
+    // Reset the form fields if you are using a form
+    form.resetFields();
+    fetchCustomers();
+  };
 
 
 
@@ -372,6 +396,16 @@ function PosPage() {
       render: (value) => <Tag className="barcode-tag" color="cyan">{value}</Tag>,
     },
     {
+      key: "company_name",
+      title: (
+        <div className="table-header">
+          <div className="khmer-text">ក្រុមហ៊ុន</div>
+          <div className="english-text">Company name</div>
+        </div>
+      ),
+      dataIndex: "company_name",
+    },
+    {
       title: (
         <div className="table-header">
           <div className="khmer-text">ឈ្មោះផលិតផល</div>
@@ -393,6 +427,7 @@ function PosPage() {
       key: "category_name",
       render: (text) => <span className="pos-row">{text}</span>,
     },
+    
     {
       title: (
         <div className="table-header">
@@ -566,6 +601,7 @@ function PosPage() {
                   placeholder="Select Customer"
                   options={state.customers}
                   loading={state.loading}
+                  value={objSummary.customer_id} // Controlled by state
                   onSelect={(value, option) => {
                     setObjSummary((prev) => ({
                       ...prev,
@@ -583,23 +619,12 @@ function PosPage() {
                   style={{ width: "100%" }}
                   placeholder="Select Payment"
                   options={[
-                    {
-                      label: "Cash",
-                      value: "Cash",
-                    },
-                    {
-                      label: "Wing",
-                      value: "Wing",
-                    },
-                    {
-                      label: "ABA",
-                      value: "ABA",
-                    },
-                    {
-                      label: "AC",
-                      value: "AC",
-                    },
+                    { label: "Cash", value: "Cash" },
+                    { label: "Wing", value: "Wing" },
+                    { label: "ABA", value: "ABA" },
+                    { label: "AC", value: "AC" },
                   ]}
+                  value={objSummary.payment_method} // Controlled by state
                   onSelect={(value) => {
                     setObjSummary((p) => ({
                       ...p,
@@ -613,14 +638,15 @@ function PosPage() {
                   allowClear
                   style={{ width: "100%" }}
                   placeholder="Select location"
-                  options={config?.branch_name} // Make sure `config?.user` contains `branch_name`
+                  options={config?.branch_name}
+                  value={objSummary.user_id} // Controlled by state
                   onSelect={(value, option) => {
                     setObjSummary((prev) => ({
                       ...prev,
                       user_id: value,
                       user_name: option.label,
                       user_address: option.address || "",
-                      branch_name: option.branch_name || "", // ✅ Fix: avoid undefined error
+                      branch_name: option.branch_name || "",
                       tel: option.tel || "",
                     }));
                   }}
@@ -670,37 +696,7 @@ function PosPage() {
           </div>
         </Col>
       </Row>
-      <Modal
-        title="New Order"
-        visible={state.visibleModal}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item label="Customer" name="customer_id" rules={[{ required: true }]}>
-            <Select
-              allowClear
-              placeholder="Select Customer"
-              options={config?.customer}
-            />
-          </Form.Item>
-          <Form.Item label="Payment Method" name="payment_method" rules={[{ required: true }]}>
-            <Select
-              allowClear
-              placeholder="Select Payment"
-              options={[
-                { label: 'Cash', value: 'Cash' },
-                { label: 'Wing', value: 'Wing' },
-                { label: 'ABA', value: 'ABA' },
-                { label: 'AC', value: 'AC' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item label="Total" name="total" rules={[{ required: true }]}>
-            <InputNumber style={{ width: '100%' }} />
-          </Form.Item>
-        </Form>
-      </Modal>
+
     </MainPage>
   );
 }

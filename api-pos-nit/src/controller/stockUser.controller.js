@@ -287,73 +287,39 @@ exports.getList = async (req, res) => {
 //   }
 // };
 
-// exports.gettotal_due = async (req, res) => {
-//   try {
-//     // Fetch total due per customer
-//     const [list] = await db.query(`
-//       SELECT 
-//         o.customer_id, 
-//         c.name AS customer_name,
-//         u.branch_name AS branch_name,
-//         u.tel AS tel,
-//         r.name AS province_name,
-//         SUM(o.total_amount - o.paid_amount) AS total_due  -- Sum total_due for each customer
-//       FROM \`order\` o
-//       JOIN customer c ON o.customer_id = c.id
-//       JOIN user u ON o.user_id = u.id
-//       JOIN role r ON u.role_id = r.id
-//       WHERE (o.total_amount - o.paid_amount) > 0
-//       GROUP BY o.customer_id  -- Group by customer ID
-//       ORDER BY MAX(o.create_at) DESC; -- Order by latest order date
-//     `);
-
-//     res.json({
-//       i_know_you_are_id: req.current_id || null,
-//       list: list, // List contains unique customers with total due amount
-//     });
-//   } catch (error) {
-//     logError("user_stock.getList", error, res);
-//   }
-// };
-
 exports.gettotal_due = async (req, res) => {
   try {
-    const { create_by } = req.query; // Get 'create_by' from request query parameters
-
-    // Construct the base SQL query
-    let sql = `
+    // Fetch total due per customer
+    const [list] = await db.query(`
       SELECT 
         o.customer_id, 
         c.name AS customer_name,
-        u.branch_name AS branch_name,
-        u.tel AS tel,
-        u.address AS address,
+        c.address AS branch_name,
+        c.tel AS tel,
+        u.create_by AS create_by,
+        o.create_at AS order_date,
+        r.name AS province_name,
         SUM(o.total_amount - o.paid_amount) AS total_due  -- Sum total_due for each customer
       FROM \`order\` o
       JOIN customer c ON o.customer_id = c.id
       JOIN user u ON o.user_id = u.id
       JOIN role r ON u.role_id = r.id
       WHERE (o.total_amount - o.paid_amount) > 0
-    `;
-
-    // Add filtering by `create_by` if provided
-    if (create_by) {
-      sql += ` AND o.create_by = :create_by`;
-    }
-
-    sql += ` GROUP BY o.customer_id ORDER BY MAX(o.create_at) DESC;`; // Group & order results
-
-    // Execute query
-    const [list] = await db.query(sql, { create_by });
+      GROUP BY o.customer_id  -- Group by customer ID
+      ORDER BY MAX(o.create_at) DESC; -- Order by latest order date
+    `);
 
     res.json({
       i_know_you_are_id: req.current_id || null,
-      list, // Return filtered list
+      list: list, // List contains unique customers with total due amount
     });
   } catch (error) {
     logError("user_stock.getList", error, res);
   }
 };
+
+
+
 
 
 

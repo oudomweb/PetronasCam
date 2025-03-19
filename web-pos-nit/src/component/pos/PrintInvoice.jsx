@@ -26,7 +26,10 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
   const formatNumber = (value) => {
     const number = parseFloat(value) || 0;
-    return Math.round(number).toLocaleString();
+    return number.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
   const formatDate = (dateString) => {

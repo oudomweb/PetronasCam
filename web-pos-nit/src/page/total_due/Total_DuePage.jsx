@@ -15,7 +15,7 @@ import { formatDateClient, isPermission, request } from "../../util/helper";
 import { MdDelete, MdEdit, MdPayment } from "react-icons/md";
 import MainPage from "../../component/layout/MainPage";
 import { configStore } from "../../store/configStore";
-import * as XLSX from 'xlsx/xlsx.mjs';
+import * as XLSX from "xlsx/xlsx.mjs";
 import { BsSearch } from "react-icons/bs";
 import { IoIosBook } from "react-icons/io";
 
@@ -44,34 +44,31 @@ function Total_DuePage() {
 
   useEffect(() => {
     getList();
-    fetchCreateByOptions();
   }, []);
 
-  const fetchCreateByOptions = async () => {
-    const res = await request("gettotal_due/creators", "get");
-    if (res && !res.error && res.creators) {
-      const options = res.creators.map(creator => ({
-        value: creator,
-        label: creator
-      }));
-      setCreateByOptions(options);
-    }
-  };
-
   const getList = async () => {
-    var param = {
-      ...filter,
-      page: refPage.current,
-    };
-    setState((pre) => ({ ...pre, loading: true }));
-    const res = await request("gettotal_due", "get", param);
-    if (res && !res.error) {
-      setState((pre) => ({
-        ...pre,
-        list: res.list,
-        total: refPage.current == 1 ? res.total : pre.total,
-        loading: false,
-      }));
+    try {
+      setState((prev) => ({ ...prev, loading: true }));
+      const param = {
+        ...filter,
+        page: refPage.current,
+      };
+      const res = await request("gettotal_due", "get", param);
+      if (res && !res.error) {
+        setState((prev) => ({
+          ...prev,
+          list: res.list,
+          total: refPage.current === 1 ? res.total : prev.total,
+          loading: false,
+        }));
+      } else {
+        message.error(res?.error || "Failed to fetch data");
+        setState((prev) => ({ ...prev, loading: false }));
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error("An error occurred while fetching data");
+      setState((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -80,7 +77,10 @@ function Total_DuePage() {
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
   };
 
   const ExportToExcel = () => {
@@ -106,12 +106,7 @@ function Total_DuePage() {
     }, 2000);
   };
 
-
-
-
-
   const onClickPay = (record) => {
-    console.log("Payment record:", record); // Add this line to debug
     setState((prev) => ({
       ...prev,
       visiblePaymentModal: true,
@@ -126,31 +121,23 @@ function Total_DuePage() {
     try {
       const values = await paymentForm.validateFields();
       const { payingRecord } = state;
-      
-      // Debug the record structure
-      console.log("Submitting payment for record:", payingRecord);
-      
-      // Check all possible ID properties
-      const recordId = payingRecord?.id || payingRecord?.total_due_id || payingRecord?._id;
-      
-      if (!payingRecord || !recordId) {
+
+      if (!payingRecord || !payingRecord.id) {
         message.error("Invalid record selected for payment update");
         return;
       }
-      
-      const paidAmount = Number(values.paid_amount);
-      if (isNaN(paidAmount)) {
+
+      const paidAmount = parseFloat(values.paid_amount);
+      if (isNaN(paidAmount) || paidAmount < 0) {
         message.error("Please enter a valid payment amount");
         return;
       }
-      
+
       const payload = {
-        id: recordId,
-        paid_amount: paidAmount
+        id: payingRecord.id,
+        paid_amount: paidAmount,
       };
-      
-      console.log("Sending payload:", payload);
-      
+
       const res = await request("updateTotalDue", "put", payload);
       if (res && !res.error) {
         message.success("Payment updated successfully!");
@@ -159,7 +146,8 @@ function Total_DuePage() {
           visiblePaymentModal: false,
           payingRecord: null,
         }));
-        getList();
+        paymentForm.resetFields();
+        getList(); // Refresh the data
       } else {
         message.error(res?.error || "Failed to update payment.");
       }
@@ -168,9 +156,6 @@ function Total_DuePage() {
       message.error("Form validation failed");
     }
   };
-
-
-
 
   const handlePaymentModalCancel = () => {
     setState((prev) => ({
@@ -183,7 +168,6 @@ function Total_DuePage() {
 
   return (
     <MainPage loading={state.loading}>
-      <h1>{form.getFieldValue("id")+""}</h1>
       <div className="pageHeader">
         <Space>
           <div>Product {state.total}</div>
@@ -222,14 +206,16 @@ function Total_DuePage() {
               setFilter((pre) => ({ ...pre, create_by: value }));
             }}
             filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
           />
           <Button onClick={onFilter} type="primary" icon={<BsSearch />}>
             Filter
           </Button>
         </Space>
-        <Button onClick={ExportToExcel} type="primary" icon={<IoIosBook />}>Export to Excel</Button>
+        <Button onClick={ExportToExcel} type="primary" icon={<IoIosBook />}>
+          Export to Excel
+        </Button>
       </div>
       <Table
         className="custom-table"
@@ -251,30 +237,16 @@ function Total_DuePage() {
               </div>
             ),
           },
+        
           {
             key: "branch_name",
-            title: (
-              <div>
-                <div className="khmer-text">សាខា</div>
-                <div className="english-text">Branch Name</div>
-              </div>
-            ),
-            dataIndex: "branch_name",
-            render: (text) => (
-              <div className="truncate-text" title={text || ""}>
-                {text || "N/A"}
-              </div>
-            ),
-          },
-          {
-            key: "address",
             title: (
               <div>
                 <div className="khmer-text">អាសយដ្ឋាន</div>
                 <div className="english-text">Address</div>
               </div>
             ),
-            dataIndex: "address",
+            dataIndex: "branch_name",
           },
           {
             key: "tel",
@@ -316,7 +288,7 @@ function Total_DuePage() {
                 <div className="english-text">Created By</div>
               </div>
             ),
-            dataIndex: "create_by",
+            dataIndex: "create_by",  // This column will display the user who created the entry
           },
           {
             key: "Action",
@@ -329,8 +301,6 @@ function Total_DuePage() {
             align: "center",
             render: (item, data, index) => (
               <Space>
-              
-               
                 <Button
                   type="primary"
                   icon={<MdPayment />}
@@ -341,6 +311,7 @@ function Total_DuePage() {
           },
         ]}
       />
+
 
       <Modal
         title="Update Payment"
@@ -354,7 +325,7 @@ function Total_DuePage() {
             name="paid_amount"
             rules={[{ required: true, message: "Please enter the paid amount" }]}
           >
-            <InputNumber style={{ width: '100%' }} min={0} />
+            <InputNumber style={{ width: "100%" }} min={0} />
           </Form.Item>
         </Form>
       </Modal>

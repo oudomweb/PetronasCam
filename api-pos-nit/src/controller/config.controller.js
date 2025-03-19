@@ -82,7 +82,7 @@ exports.getList = async (req, res) => {
         { label: "Petronas Malaysia", value: "petronas-malaysia", country: "Malaysia" }
       ];
       const branch_name = [
-        { label: "ស្នាក់ការកណ្តាល", value: "ស្នាក់ការកណ្តាល" },
+        { label: "ទីស្នាក់ការកណ្តាល", value: "ទីស្នាក់ការកណ្តាល" },
         { label: "Phnom Penh - ភ្នំពេញ", value: "Phnom Penh" },
         { label: "Siem Reap - សៀមរាប", value: "Siem Reap" },
         { label: "Battambang - បាត់ដំបង", value: "Battambang" },

@@ -758,3 +758,15 @@ body {
     padding: 0;
   }
 }
+
+
+
+
+.menu-item-text {
+  display: inline-block;
+  max-width: 150px; /* Adjust width as needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}

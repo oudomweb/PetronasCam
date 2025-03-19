@@ -577,7 +577,7 @@
 // export default UserPage;
 
 import React, { useEffect, useState } from "react";
-import { request } from "../../util/helper";
+import { formatDateServer, request } from "../../util/helper";
 import {
   Avatar,
   Button,
@@ -599,6 +599,7 @@ import { MdOutlineCreateNewFolder } from "react-icons/md";
 import { UploadOutlined, UserOutlined } from "@ant-design/icons";
 import { Config } from "../../util/config";
 import { IoEyeOutline } from "react-icons/io5";
+import dayjs from "dayjs";
 
 function UserPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -713,10 +714,74 @@ function UserPage() {
   };
 
   // Handle form submission
-  const onFinish = async (items) => {
-    const params = new FormData();
+  // const onFinish = async (items) => {
+  //   const params = new FormData();
 
-    // Append other form fields
+  //   // Append other form fields
+  //   params.append("name", items.name);
+  //   params.append("username", items.username);
+  //   params.append("password", items.password);
+  //   params.append("role_id", items.role_id);
+  //   params.append("address", items.address);
+  //   params.append("tel", items.tel);
+  //   params.append("branch_name", items.branch_name);
+  //   params.append("is_active", items.is_active);
+
+  //   // Append the file if it exists
+  //   if (items.profile_image && items.profile_image.file) {
+  //     params.append("upload_image", items.profile_image.file.originFileObj);
+  //   }
+
+  //   // Append the user ID if editing an existing use
+  //   if (form.getFieldValue("id")) {
+  //     params.append("id", form.getFieldValue("id"));
+  //   }
+
+  //   // Determine the HTTP method (POST for create, PUT for update)
+  //   const method = form.getFieldValue("id") ? "put" : "post";
+
+  //   // Send the request to the backend
+  //   const res = await request("auth/register", method, params);
+
+  //   // Handle the response
+  //   if (res && !res.error) {
+  //     message.success(res.message);
+  //     getList(); // Refresh the user list
+  //     handleCloseModal(); // Close the modal
+  //   } else {
+  //     message.error(res.message || "An error occurred");
+  //   }
+  // };
+
+  const onFinish = async (items) => {
+    // ពិនិត្យមើលពាក្យសម្ងាត់ត្រូវគ្នា
+    if (items.password !== items.confirm_password) {
+      message.error("ពាក្យសម្ងាត់មិនត្រូវគ្នា!");
+      return;
+    }
+
+    // ពិនិត្យមើល Email មានរួចហើយឬអត់
+    const isEmailExist = state.list.some(
+      (user) => user.username === items.username && user.id !== items.id
+    );
+
+    if (isEmailExist) {
+      message.error("Email មានរួចហើយ!");
+      return;
+    }
+
+    // ពិនិត្យមើលលេខទូរស័ព្ទមានរួចហើយឬអត់
+    const isTelExist = state.list.some(
+      (user) => user.tel === items.tel && user.id !== items.id
+    );
+
+    if (isTelExist) {
+      message.error("លេខទូរស័ព្ទមានរួចហើយ!");
+      return;
+    }
+
+    // បន្តការបង្កើតឬកែប្រែអ្នកប្រើប្រាស់
+    const params = new FormData();
     params.append("name", items.name);
     params.append("username", items.username);
     params.append("password", items.password);
@@ -726,29 +791,23 @@ function UserPage() {
     params.append("branch_name", items.branch_name);
     params.append("is_active", items.is_active);
 
-    // Append the file if it exists
     if (items.profile_image && items.profile_image.file) {
       params.append("upload_image", items.profile_image.file.originFileObj);
     }
 
-    // Append the user ID if editing an existing use
     if (form.getFieldValue("id")) {
       params.append("id", form.getFieldValue("id"));
     }
 
-    // Determine the HTTP method (POST for create, PUT for update)
     const method = form.getFieldValue("id") ? "put" : "post";
-
-    // Send the request to the backend
     const res = await request("auth/register", method, params);
 
-    // Handle the response
     if (res && !res.error) {
       message.success(res.message);
-      getList(); // Refresh the user list
-      handleCloseModal(); // Close the modal
+      getList();
+      handleCloseModal();
     } else {
-      message.error(res.message || "An error occurred");
+      message.error(res.message || "មានបញ្ហាកើតឡើង!");
     }
   };
 
@@ -975,21 +1034,30 @@ function UserPage() {
 
               {/* Confirm Password */}
               <Form.Item
-                name={"confirm_password"}
+                name="confirm_password"
                 label={
                   <div>
                     <span className="khmer-text">បញ្ជាក់ពាក្យសម្ងាត់</span>
                     <span className="english-text">Confirm Password</span>
                   </div>
                 }
+                dependencies={["password"]} // ពិនិត្យមើលពាក្យសម្ងាត់ដែលអ្នកប្រើប្រាស់បានបញ្ចូល
                 rules={[
                   {
                     required: true,
-                    message: "Please fill in confirm password",
+                    message: "សូមបញ្ជាក់ពាក្យសម្ងាត់",
                   },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error("ពាក្យសម្ងាត់មិនត្រូវគ្នា!"));
+                    },
+                  }),
                 ]}
               >
-                <Input.Password placeholder="Confirm Password" className="input-field" />
+                <Input.Password placeholder="បញ្ជាក់ពាក្យសម្ងាត់" className="input-field" />
               </Form.Item>
 
               {/* Role */}
@@ -1109,7 +1177,7 @@ function UserPage() {
             key: "name",
             title: (
               <div>
-                <div className="khmer-text">ឈ្មោះ</div>
+                <div className="khmer-text">តួនាទី</div>
                 <div className="english-text">Role Name</div>
               </div>
             ),
@@ -1119,8 +1187,8 @@ function UserPage() {
             key: "username",
             title: (
               <div>
-                <div className="khmer-text">ឈ្មោះអ្នកប្រើប្រាស់</div>
-                <div className="english-text">Username</div>
+                <div className="khmer-text">អ៊ីមែល</div>
+                <div className="english-text">Email</div>
               </div>
             ),
             dataIndex: "username",
@@ -1186,11 +1254,13 @@ function UserPage() {
             title: (
               <div>
                 <div className="khmer-text">កាលបរិច្ឆេទបង្កើត</div>
-                <div className="english-text">Created At</div>
+                <div className="english-text">Created Date</div>
               </div>
             ),
-            dataIndex: "create_at",
+            dataIndex: "create_at", // Match your database field
+            render: (value) => formatDateServer(value, "YYYY-MM-DD h:mm A"), // Correct function usage
           },
+
           {
             key: "action",
             title: (
