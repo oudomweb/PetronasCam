@@ -41,13 +41,14 @@ td {
   color: #333; 
 }
 .pos-row {
-  font-family: 'Khmer OS Battambang';
-  font-size: 10px;
+  font-family: "Khmer OS Battambang", sans-serif;
+  font-size: 10px !important; /* Ensure it overrides any default styling */
   font-weight: bold;
-  color: #333;
-  letter-spacing: 0.5px; /* Adding space between characters for the Killing Mark effect */
-  text-transform: uppercase; /* Optional: to make the letters appear in uppercase */
+  color: #000000;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
+
 
 .khmer-oil {
   font-family: 'Khmer OS Muol';
