@@ -8,16 +8,15 @@ import {
     Select,
     Space,
     Table,
-    DatePicker,
     Tag
 } from "antd";
 import { formatDateClient, formatDateServer, request } from "../../util/helper";
 import * as XLSX from 'xlsx/xlsx.mjs';
 import { MdDelete, MdEdit, MdNewLabel } from "react-icons/md";
 import MainPage from "../../component/layout/MainPage";
-import dayjs from 'dayjs';
 import { FiSearch } from "react-icons/fi";
 import { IoBook } from "react-icons/io5";
+
 function EmployeePage() {
     const [formRef] = Form.useForm();
     const [list, setList] = useState([]);
@@ -27,9 +26,11 @@ function EmployeePage() {
         id: null,
         txtSearch: "",
     });
+
     useEffect(() => {
         getList();
     }, []);
+
     const getList = async () => {
         setLoading(true);
         const param = {
@@ -39,26 +40,33 @@ function EmployeePage() {
         setLoading(false);
         if (res) {
             setList(res.list);
+            console.log("Updated List:", res.list);
         }
     };
+
     const onClickEdit = (data) => {
         setState({
             ...state,
             visibleModal: true,
             id: data.id,
         });
+    
         formRef.setFieldsValue({
             id: data.id,
             name: data.name,
-            gender: data.gender,
+            gender: data.gender, // Backend already returns "Male" or "Female"
             position: data.position,
             salary: data.salary,
             tel: data.tel,
             email: data.email,
             address: data.address,
+            code: data.code,
+            website: data.website,
+            note: data.note,
             status: data.status,
         });
     };
+
     const onClickDelete = async (data) => {
         Modal.confirm({
             title: "Delete",
@@ -77,6 +85,7 @@ function EmployeePage() {
             },
         });
     };
+
     const onClickAddBtn = () => {
         setState({
             ...state,
@@ -85,6 +94,7 @@ function EmployeePage() {
         });
         formRef.resetFields();
     };
+
     const onCloseModal = () => {
         formRef.resetFields();
         setState({
@@ -93,40 +103,45 @@ function EmployeePage() {
             id: null,
         });
     };
+
     const onFinish = async (values) => {
-        // ពិនិត្យមើល Email មានរួចហើយឬអត់
+        // Check if email already exists
         const isEmailExist = list.some(
             (employee) => employee.email === values.email && employee.id !== state.id
         );
 
         if (isEmailExist) {
-            message.error("Email មានរួចហើយ!");
+            message.error("Email already exists!");
             return;
         }
 
-        // ពិនិត្យមើលលេខទូរស័ព្ទមានរួចហើយឬអត់
+        // Check if telephone number already exists
         const isTelExist = list.some(
             (employee) => employee.tel === values.tel && employee.id !== state.id
         );
 
         if (isTelExist) {
-            message.error("លេខទូរស័ព្ទមានរួចហើយ!");
+            message.error("Telephone number already exists!");
             return;
         }
 
-        // បន្តការបង្កើតឬកែប្រែបុគ្គលិក
+        // Prepare data for submission
         const data = {
             id: state.id,
             name: values.name,
-            gender: values.gender,
+            gender: values.gender, // Pass as "Male" or "Female"
             position: values.position,
             salary: values.salary,
             tel: values.tel,
             email: values.email,
             address: values.address,
+            code: values.code,
+            website: values.website,
+            note: values.note,
             status: values.status,
         };
 
+        // Submit data to the backend
         const method = state.id ? "put" : "post";
         const res = await request("employee", method, data);
 
@@ -135,9 +150,10 @@ function EmployeePage() {
             getList();
             onCloseModal();
         } else {
-            message.error(res.message || "មានបញ្ហាកើតឡើង!");
+            message.error(res.message || "An error occurred!");
         }
     };
+
     const ExportToExcel = () => {
         if (list.length === 0) {
             message.warning("No data available to export.");
@@ -147,17 +163,14 @@ function EmployeePage() {
         // Show loading message
         const hideLoadingMessage = message.loading(
             <div className="khmer-text">សូមមេត្តារងចាំ...</div>,
-            0 // 0 means the message will not auto-close
+            0
         );
 
-        // Simulate a delay for testing
         setTimeout(() => {
             try {
-                // Prepare data for export
+                // Prepare data for export - no need to convert gender as it already comes as "Male" or "Female"
                 const data = list.map((item) => ({
                     ...item,
-                    gender: item.gender === 1 ? "Male" : "Female",
-                    dob: formatDateClient(item.dob),
                     create_at: formatDateClient(item.create_at),
                 }));
 
@@ -182,8 +195,9 @@ function EmployeePage() {
                 message.error("Failed to export data. Please try again.");
                 console.error("Export error:", error);
             }
-        }, 2000); // Simulate a 2-second delay
+        }, 2000);
     };
+
     return (
         <MainPage loading={loading}>
             <div className="pageHeader">
@@ -201,7 +215,7 @@ function EmployeePage() {
                         Filter
                     </Button>
                     <Button type="primary" onClick={ExportToExcel} icon={<IoBook />}>
-                        Export to Exel
+                        Export to Excel
                     </Button>
                 </Space>
                 <Button type="primary" onClick={onClickAddBtn} icon={<MdNewLabel />}>
@@ -215,7 +229,6 @@ function EmployeePage() {
                         <div className="khmer-text">
                             {state.id ? "កែសម្រួលបុគ្គលិក" : "បុគ្គលិកថ្មី"}
                         </div>
-
                     </div>
                 }
                 footer={null}
@@ -253,13 +266,23 @@ function EmployeePage() {
                         <Select
                             placeholder="Select gender"
                             options={[
-                                { label: "Male", value: 1 },
-                                { label: "Female", value: 0 },
+                                { label: "Male", value: "Male" },
+                                { label: "Female", value: "Female" },
                             ]}
                         />
                     </Form.Item>
 
-                   
+                    {/* Code */}
+                    <Form.Item
+                        name="code"
+                        label={
+                            <div>
+                                <div className="khmer-text">កូដ</div>
+                            </div>
+                        }
+                    >
+                        <Input placeholder="Input code" />
+                    </Form.Item>
 
                     {/* Position */}
                     <Form.Item
@@ -325,6 +348,30 @@ function EmployeePage() {
                         <Input.TextArea placeholder="Input address" />
                     </Form.Item>
 
+                    {/* Website */}
+                    <Form.Item
+                        name="website"
+                        label={
+                            <div>
+                                <div className="khmer-text">គេហទំព័រ</div>
+                            </div>
+                        }
+                    >
+                        <Input placeholder="Input website" />
+                    </Form.Item>
+
+                    {/* Note */}
+                    <Form.Item
+                        name="note"
+                        label={
+                            <div>
+                                <div className="khmer-text">កំណត់ចំណាំ</div>
+                            </div>
+                        }
+                    >
+                        <Input.TextArea placeholder="Input notes" />
+                    </Form.Item>
+
                     {/* Status */}
                     <Form.Item
                         name="status"
@@ -356,7 +403,6 @@ function EmployeePage() {
                                 <div className="khmer-text">
                                     {state.id ? "កែសម្រួល" : "រក្សាទុក"}
                                 </div>
-
                             </div>
                         </Button>
                     </Space>
@@ -395,10 +441,8 @@ function EmployeePage() {
                                 <div className="english-text">Gender</div>
                             </div>
                         ),
-                        dataIndex: "gender",
-                        render: (value) => (value === 1 ? "Male" : "Female"),
+                        dataIndex: "gender", // Backend already returns "Male" or "Female"
                     },
-                   
                     {
                         key: "position",
                         title: (
@@ -465,17 +509,17 @@ function EmployeePage() {
                             </Tag>
                         ),
                     },
-                     {
-                                key: "create_at",
-                                title: (
-                                  <div>
-                                    <div className="khmer-text">កាលបរិច្ឆេទបង្កើត</div>
-                                    <div className="english-text">Created Date</div>
-                                  </div>
-                                ),
-                                dataIndex: "create_at", // Match your database field
-                                render: (value) => formatDateServer(value, "YYYY-MM-DD h:mm A"), // Correct function usage
-                              },
+                    {
+                        key: "create_at",
+                        title: (
+                            <div>
+                                <div className="khmer-text">កាលបរិច្ឆេទបង្កើត</div>
+                                <div className="english-text">Created Date</div>
+                            </div>
+                        ),
+                        dataIndex: "create_at",
+                        render: (value) => formatDateServer(value, "YYYY-MM-DD h:mm A"),
+                    },
                     {
                         key: "action",
                         title: (
@@ -507,4 +551,5 @@ function EmployeePage() {
         </MainPage>
     );
 }
+
 export default EmployeePage;
