@@ -298,16 +298,16 @@ function Total_DuePage() {
                 <div className="english-text">Action</div>
               </div>
             ),
-            align: "center",
-            render: (item, data, index) => (
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<MdPayment />}
-                  onClick={() => onClickPay(data)}
-                />
-              </Space>
-            ),
+            // align: "center",
+            // render: (item, data, index) => (
+              // <Space>
+              //   <Button
+              //     type="primary"
+              //     icon={<MdPayment />}
+              //     onClick={() => onClickPay(data)}
+              //   />
+              // </Space>
+            // ),
           },
         ]}
       />

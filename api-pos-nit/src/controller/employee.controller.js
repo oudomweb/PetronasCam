@@ -3,11 +3,26 @@ const { db, isArray, isEmpty, logError } = require("../util/helper");
 exports.getList = async (req, res) => {
   try {
     const { txtSearch } = req.query;
-    let sql = "SELECT * FROM employee";
+    let sql = `
+      SELECT 
+        id,
+        name,
+        CASE 
+          WHEN gender = 1 THEN 'Male'
+          WHEN gender = 0 THEN 'Female'
+        END AS gender,
+        position,
+        salary,
+        tel,
+        email,
+        address,
+        create_at
+      FROM employee
+    `;
 
     if (!isEmpty(txtSearch)) {
       sql +=
-        " WHERE firstname LIKE :txtSearch OR lastname LIKE :txtSearch OR tel LIKE :txtSearch OR email LIKE :txtSearch";
+        " WHERE  name LIKE :txtSearch OR tel LIKE :txtSearch OR email LIKE :txtSearch";
     }
 
     const [list] = await db.query(sql, {
@@ -28,7 +43,7 @@ exports.create = async (req, res) => {
       name,
       position,
       salary,
-      gender,
+      gender, // Expecting "Male" or "Female" from the frontend
       tel,
       email,
       code,
@@ -37,18 +52,21 @@ exports.create = async (req, res) => {
       note,
     } = req.body;
 
+    // Convert gender from "Male"/"Female" to 1/0
+    const genderValue = gender === "Male" ? 1 : 0;
+
     const sql = `
       INSERT INTO employee 
-        (name, position, salary,gender , tel, email, code,address, website, note, create_by, create_at) 
+        (name, position, salary, gender, tel, email, code, address, website, note, create_by, create_at) 
       VALUES 
-        (:name, :position, :salary,:gender , :tel, :email,:code ,:address, :website, :note, :create_by, NOW())
+        (:name, :position, :salary, :gender, :tel, :email, :code, :address, :website, :note, :create_by, NOW())
     `;
 
     const [data] = await db.query(sql, {
       name,
       position,
       salary,
-      gender ,
+      gender: genderValue, // Use the converted value
       tel,
       email,
       code,
@@ -74,7 +92,7 @@ exports.update = async (req, res) => {
       name,
       position,
       salary,
-      gender ,
+      gender, // Expecting "Male" or "Female" from the frontend
       code,
       tel,
       email,
@@ -82,6 +100,9 @@ exports.update = async (req, res) => {
       website,
       note,
     } = req.body;
+
+    // Convert gender from "Male"/"Female" to 1/0
+    const genderValue = gender === "Male" ? 1 : 0;
 
     const sql = `
       UPDATE employee 
@@ -104,7 +125,7 @@ exports.update = async (req, res) => {
       name,
       position,
       salary,
-      gender,
+      gender: genderValue, // Use the converted value
       code,
       tel,
       email,

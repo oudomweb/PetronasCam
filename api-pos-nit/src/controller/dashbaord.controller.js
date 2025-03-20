@@ -153,12 +153,12 @@ exports.getList = async (req, res) => {
 
     // Employee count - typically not filtered by date unless needed
     const [employee] = await db.query(`
-      SELECT 
-          COUNT(id) AS total, 
-          SUM(CASE WHEN gender = 'Male' THEN 1 ELSE 0 END) AS male, 
-          SUM(CASE WHEN gender = 'Female' THEN 1 ELSE 0 END) AS female
-      FROM employee
-  `);
+     SELECT 
+    COUNT(id) AS total, 
+    SUM(CASE WHEN gender = 1 THEN 1 ELSE 0 END) AS male, 
+    SUM(CASE WHEN gender = 0 THEN 1 ELSE 0 END) AS female
+FROM employee;
+    `);
 
     // Expense data with date filter
     const expenseQuery = `
@@ -232,19 +232,19 @@ exports.getList = async (req, res) => {
       {
         title: "អតិថិជន",
         Summary: {
-          សរុប: customer[0].total+ " នាក់",
-          បុរស: Math.round(customer[0].total * malePercentage)+ " នាក់", // 60% Male
-          ស្ត្រី: Math.round(customer[0].total * femalePercentage)+ " នាក់" // 40% Female
+          សរុប: customer[0].total + " នាក់",
+          បុរស: Math.round(customer[0].total * malePercentage) + " នាក់", // 60% Male
+          ស្ត្រី: Math.round(customer[0].total * femalePercentage) + " នាក់" // 40% Female
         }
       },
       {
         title: "និយោជិត", // Employee
         Summary: {
-            "សរុប": employee[0].total + "នាក់", // Total Employees
-            "បុរស": employee[0].male + " នាក់", // Male Employees
-            "ស្ត្រី": employee[0].female + " នាក់" // Female Employees
+          "សរុប": employee[0].total + "នាក់", // Total Employees
+          "បុរស": employee[0].male + " នាក់", // Male Employees
+          "ស្ត្រី": employee[0].female + " នាក់" // Female Employees
         }
-    },
+      },
       {
         title: "ប្រព័ន្ធចំណាយ",
         Summary: {

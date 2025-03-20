@@ -404,6 +404,8 @@ function PosPage() {
         </div>
       ),
       dataIndex: "company_name",
+      key: "company_name",
+      render: (text) => <span className="pos-row">{text}</span>,
     },
     {
       title: (
