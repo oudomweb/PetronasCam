@@ -26,6 +26,7 @@ import Total_DuePage from "./page/total_due/Total_DuePage";
 import AboutHomepage from "./page/about/Aboutpage";
 import ProfilePage from "./page/user/ProfilePage";
 import ExpanseTypePage from "./page/expanse/ExpanseTypePage";
+// import ChatPage from "./component/chat/ChatPage";
 
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
             <Route path="/user" element={<UserPage />} />
             <Route path="/product" element={<ProductPage />} />
             <Route path="/role" element={<RolePage />} />
+            {/* <Route path="/chat" element={<ChatPage />} /> */}
             <Route path="/supplier" element={<SupplierPage />} />
             <Route path="/total_due" element={<Total_DuePage />} />
             <Route path="/profile" element={<ProfilePage />} />

@@ -93,6 +93,7 @@ require("./src/route/currency.route")(app);
 require("./src/route/invoices.route")(app);
 require("./src/route/admin_stock_transfer.route")(app); 
 require("./src/route/StockUser.route")(app);
+require("./src/route/Chat_Application.route")(app);
 // require("./src/route/expense_type.route")(app);
 
 // const PORT =  process.env.PORT || 8000;

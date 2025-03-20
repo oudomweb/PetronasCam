@@ -754,33 +754,38 @@ function UserPage() {
   // };
 
   const onFinish = async (items) => {
-    // ពិនិត្យមើលពាក្យសម្ងាត់ត្រូវគ្នា
+    // Check if passwords match
     if (items.password !== items.confirm_password) {
       message.error("ពាក្យសម្ងាត់មិនត្រូវគ្នា!");
       return;
     }
 
-    // ពិនិត្យមើល Email មានរួចហើយឬអត់
+    const currentUserId = form.getFieldValue("id");
+    const isUpdate = !!currentUserId;
+
+    // For email validation - only check other users' emails
     const isEmailExist = state.list.some(
-      (user) => user.username === items.username && user.id !== items.id
+      (user) => user.username === items.username && user.id !== currentUserId
     );
 
+    // Only validate email for new users or if email has changed
     if (isEmailExist) {
       message.error("Email មានរួចហើយ!");
       return;
     }
 
-    // ពិនិត្យមើលលេខទូរស័ព្ទមានរួចហើយឬអត់
+    // For phone validation - only check other users' phone numbers
     const isTelExist = state.list.some(
-      (user) => user.tel === items.tel && user.id !== items.id
+      (user) => user.tel === items.tel && user.id !== currentUserId
     );
 
+    // Only validate phone for new users or if phone has changed
     if (isTelExist) {
       message.error("លេខទូរស័ព្ទមានរួចហើយ!");
       return;
     }
 
-    // បន្តការបង្កើតឬកែប្រែអ្នកប្រើប្រាស់
+    // Continue with user creation or update
     const params = new FormData();
     params.append("name", items.name);
     params.append("username", items.username);
@@ -795,11 +800,11 @@ function UserPage() {
       params.append("upload_image", items.profile_image.file.originFileObj);
     }
 
-    if (form.getFieldValue("id")) {
-      params.append("id", form.getFieldValue("id"));
+    if (isUpdate) {
+      params.append("id", currentUserId);
     }
 
-    const method = form.getFieldValue("id") ? "put" : "post";
+    const method = isUpdate ? "put" : "post";
     const res = await request("auth/register", method, params);
 
     if (res && !res.error) {
