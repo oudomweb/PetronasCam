@@ -3,6 +3,7 @@ import logo from "../../assets/petronas_black2.png";
 import "./fonts.css";
 import { getProfile } from "../../store/profile.store";
 import { formatDateClient } from "../../util/helper";
+import './printFont.css';
 
 // Function to convert number to Khmer words
 const numberToKhmerWords = (number) => {
@@ -115,7 +116,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
   const totalInKhmerWords = numberToKhmerWords(roundedTotal);
 
   return (
-    <div ref={ref} className="p-8 max-w-4xl mx-auto">
+    <div ref={ref} className="p-8 max-w-4xl mx-auto ">
       <div className="flex justify-between items-center">
         <div className="items-center">
           <img
@@ -125,8 +126,9 @@ const PrintInvoice = React.forwardRef((props, ref) => {
           />
         </div>
 
+
         <div className="flex flex-col items-center justify-center text-center flex-1">
-          <h2 className="text-2xl font-bold khmer-text">វិក្កយប័ត្រ</h2>
+          <h2 className="text-2xl khmer-text moul-regular ">វិក្កយប័ត្រ</h2>
           <h2 className="text-xl khmer-text">INVOICE</h2>
         </div>
 
@@ -135,42 +137,17 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          {/* Customer Name - Khmer MEF FastHand */}
-          <p className="customer-name-font">
-            ឈ្មោះអតិថិជន: {objSummary?.customer_name || "N/A"}
-          </p>
-
-          {/* Address - Khmer OS Freehand */}
-          <p className="address-font mt-1">
-            អាស័យដ្ឋាន: {objSummary?.customer_address || "N/A"}
-          </p>
-
-          {/* Other info - Default khmer-text */}
-          <p className="khmer-text mt-1">
-            លេខទូរស័ព្ទ: {objSummary?.customer_tel || "N/A"}
-          </p>
-          <p className="khmer-text mt-1">
-            គោលដៅ: {objSummary.user_name || "N/A"}
-          </p>
-        </div>
-
+          <p className="customer-name-font bg-rr">ឈ្មោះអតិថិជន: <span className="fasthand-regular font-bold ">{objSummary?.customer_name || "N/A"}</span></p>
+          <p className="khmer-text mt-1">អាស័យដ្ឋាន: <span className="freehand-regular">{objSummary?.customer_address || "N/A"}</span></p>
+          <p className="khmer-text mt-1">លេខទូរស័ព្ទ: {objSummary?.customer_tel || "N/A"}</p>
+          <p className="khmer-text mt-1">គោលដៅ: {objSummary.user_name || "N/A"}</p></div>
         <div className="text-right">
-          {/* Right column - All default khmer-text */}
-          <p className="khmer-text mt-1">
-            លេខវិក្កយប័ត្រ: {objSummary.order_no}
+          <p className="khmer-text mt-1">លេខវិក្កយប័ត្រ: {objSummary.order_no}
           </p>
-          <p className="khmer-text mt-1">
-            ថ្ងៃបញ្ជាទិញ: {formatDateClient(objSummary.order_date)}
-          </p>
-          <p className="khmer-text mt-1">
-            ថ្ងៃប្រគល់ទំនិញ: {formatDateClient(objSummary.order_date)}
-          </p>
-          <p className="khmer-text mt-1">
-            លេខបញ្ជាទិញ: {`#SA-${objSummary.order_no}`}
-          </p>
-          <p className="khmer-text mt-1">
-            លេខបណ្ណបញ្ចេញទំនិញ:...................
-          </p>
+          <p className="khmer-text mt-1">ថ្ងៃបញ្ជាទិញ: {formatDateClient(objSummary.order_date)}</p>
+          <p className="khmer-text mt-1">ថ្ងៃប្រគល់ទំនិញ: {formatDateClient(objSummary.order_date)}</p>
+          <p className="khmer-text mt-1">លេខបញ្ជាទិញ: {`#SA-${objSummary.order_no}`}</p>
+          <p className="khmer-text mt-1">លេខបណ្ណបញ្ចេញទំនិញ:...................</p>
         </div>
       </div>
       <div className="w-full mb-8 overflow-x-auto">
@@ -195,7 +172,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
               </th>
               <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text">
                 <span>តម្លៃរាយ</span>
-                <br /> <span>Unit Price</span>
+                <br /> <span>Ton Price</span>
               </th>
               <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text">
                 <span>តម្លៃសរុប</span>
@@ -233,6 +210,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
                 </tr>
               );
             })}
+
 
             {/* Grand Total Row */}
             <tr className="font-bold">
@@ -274,7 +252,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
                     {/* Add space here */}
                     <div className="mt-8"></div>
 
-                    <p className="mt-2"> ....../....../.....</p>
+                    <p className="mt-2 text-md"> ....../....../.....</p>
                   </div>
                   <div className="text-center mt-4 mb-10 khmer-text px-32">
                     <p className="font-bold mb-2 khmer-text">គណនេយ្យករ</p>
@@ -301,5 +279,4 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 });
 
 export default PrintInvoice;
-
 

@@ -38,18 +38,18 @@ function ProductPage() {
 
   const calculateTotalPrice = (item) => {
     const { qty = 0, unit_price = 0, discount = 0, actual_price = 1 } = item;
-    
+
     // Handle division by zero cases
     if (actual_price <= 0) return 0;
-    
+
     // Calculate base price
     const basePrice = qty * unit_price;
-    
+
     // Apply discount if exists
-    const discountedPrice = discount > 0 
+    const discountedPrice = discount > 0
       ? basePrice * (1 - discount / 100)
       : basePrice;
-    
+
     // Return final price rounded to 2 decimal places
     return parseFloat((discountedPrice / actual_price).toFixed(2));
   };
@@ -115,7 +115,7 @@ function ProductPage() {
       page: 1, // Force first page
       is_list_all: 1, // Ensure fetching all
     };
-    
+
     setState((pre) => ({ ...pre, loading: true }));
     const { id } = getProfile();
     if (!id) {
@@ -186,7 +186,7 @@ function ProductPage() {
       message.error("User ID is missing!");
       return;
     }
-  
+
     // បង្កើតទិន្នន័យសម្រាប់ការកម្មង
     var data = {
       id: form.getFieldValue("id"),
@@ -204,31 +204,31 @@ function ProductPage() {
       description: items.description,
       status: items.status,
     };
-  
+
     // បញ្ជូនទិន្នន័យទៅ API
     var method = form.getFieldValue("id") ? "put" : "post";
     const res = await request("product", method, data);
-  
+
     if (res && !res.error) {
       message.success(res.message);
-  
+
       // ដកតម្លៃ qty ពីសរុបរួម (totals)
       const updatedTotals = { ...state.totals };
       if (updatedTotals[items.category_name]) {
         updatedTotals[items.category_name] -= items.qty;
-  
+
         // ប្រសិនបើតម្លៃសរុបរួមធ្លាក់ខ្លួនតិចជាង 0 កំណត់វាជា 0
         if (updatedTotals[items.category_name] < 0) {
           updatedTotals[items.category_name] = 0;
         }
       }
-  
+
       // ធ្វើបច្ចុប្បន្នភាព state ជាមួយនឹងតម្លៃសរុបរួមថ្មី
       setState((pre) => ({
         ...pre,
         totals: updatedTotals,
       }));
-  
+
       // ទាញយកបញ្ជីថ្មី និងបិទ modal
       getList();
       onCloseModal();
@@ -294,7 +294,7 @@ function ProductPage() {
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   };
-  
+
 
   const onValuesChange = (changedValues, allValues) => {
     if (changedValues.qty || changedValues.unit_price || changedValues.discount || changedValues.actual_price) {
@@ -315,7 +315,7 @@ function ProductPage() {
   const product = [
     { label: "ប្រេងឥន្ធនៈ", value: "oil" },
   ];
-  
+
   const handleChange = (value) => {
     console.log("Selected:", value);
   };
@@ -403,12 +403,12 @@ function ProductPage() {
                   },
                 ]}
               >
-               <Select
-    options={product}
-    onChange={handleChange}
-    placeholder="Select a product"
-    style={{ width: 200 }}
-  />
+                <Select
+                  options={product}
+                  onChange={handleChange}
+                  placeholder="Select a product"
+                  style={{ width: 200 }}
+                />
               </Form.Item>
               <Form.Item
                 name={"category_id"}
@@ -597,107 +597,107 @@ function ProductPage() {
           </div>
         </Form>
       </Modal>
-      <Row style={{ 
-  marginBottom: 24,
-  background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-  padding: '18px 20px',
-  borderRadius: 12,
-  border: '1px solid #dee2e6',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-}}>
-  <Col span={24}>
-    <Space 
-      size={[14, 12]} 
-      wrap
-      style={{
-        width: '100%',
-        justifyContent: 'flex-start',
-        alignItems: 'center'
-      }}
-    >
-      {Object.entries(state.totals || {}).map(([category, total]) => {
-        const categoryItems = state.list.filter(item => item.category_name === category);
-        const totalSum = categoryItems.reduce((sum, item) => sum + calculateTotalPrice(item), 0);
-        
-        // Dynamic color based on category
-        const categoryColors = {
-          'ហ្កាស(LPG)': { bg: '#fff8e6', border: '#ffd666', text: '#d46b08' },
-          'ប្រេងសាំងធម្មតា(EA)': { bg: '#e6fffb', border: '#5cdbd3', text: '#08979c' },
-          'ប្រេងម៉ាស៊ូត(Do)': { bg: '#f6ffed', border: '#b7eb8f', text: '#389e0d' },
-          'ប្រេងសាំងស៊ុបពែរ(Super)': { bg: '#f0f5ff', border: '#adc6ff', text: '#1d39c4' },
-          'default': { bg: '#fafafa', border: '#d9d9d9', text: '#434343' }
-        };
-        
-        const colors = categoryColors[category] || categoryColors['default'];
-        
-        return (
-          <Tag 
-            key={category} 
+      <Row style={{
+        marginBottom: 24,
+        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        padding: '18px 20px',
+        borderRadius: 12,
+        border: '1px solid #dee2e6',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+      }}>
+        <Col span={24}>
+          <Space
+            size={[14, 12]}
+            wrap
             style={{
-              margin: 0,
-              padding: '10px 16px',
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: 8,
-              background: colors.bg,
-              border: `1px solid ${colors.border}`,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s ease',
-              ':hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.08)'
-              }
+              width: '100%',
+              justifyContent: 'flex-start',
+              alignItems: 'center'
             }}
           >
-            <span style={{ 
-              fontWeight: 600, 
-              color: colors.text,
-              minWidth: 'max-content'
-            }}>
-              {category}
-            </span>
-            
-            <Divider type="vertical" style={{ 
-              height: 22, 
-              margin: '0 6px',
-              borderColor: colors.border,
-              opacity: 0.6
-            }} />
-            
-            <span style={{ 
-              color: colors.text,
-              minWidth: 'max-content',
-              fontWeight: 500
-            }}>
-              {total.toLocaleString()}L
-            </span>
-            
-            <Divider type="vertical" style={{ 
-              height: 22, 
-              margin: '0 6px',
-              borderColor: colors.border,
-              opacity: 0.6
-            }} />
-            
-            <span style={{ 
-              color: '#1d39c4',
-              fontWeight: 600,
-              minWidth: 'max-content',
-              background: 'rgba(24, 144, 255, 0.1)',
-              padding: '2px 6px',
-              borderRadius: 4
-            }}>
-              {formatCurrencyalltotal(totalSum)}
-            </span>
-          </Tag>
-        );
-      })}
-    </Space>
-  </Col>
-</Row>
+            {Object.entries(state.totals || {}).map(([category, total]) => {
+              const categoryItems = state.list.filter(item => item.category_name === category);
+              const totalSum = categoryItems.reduce((sum, item) => sum + calculateTotalPrice(item), 0);
+
+              // Dynamic color based on category
+              const categoryColors = {
+                'ហ្កាស(LPG)': { bg: '#fff8e6', border: '#ffd666', text: '#d46b08' },
+                'ប្រេងសាំងធម្មតា(EA)': { bg: '#e6fffb', border: '#5cdbd3', text: '#08979c' },
+                'ប្រេងម៉ាស៊ូត(Do)': { bg: '#f6ffed', border: '#b7eb8f', text: '#389e0d' },
+                'ប្រេងសាំងស៊ុបពែរ(Super)': { bg: '#f0f5ff', border: '#adc6ff', text: '#1d39c4' },
+                'default': { bg: '#fafafa', border: '#d9d9d9', text: '#434343' }
+              };
+
+              const colors = categoryColors[category] || categoryColors['default'];
+
+              return (
+                <Tag
+                  key={category}
+                  style={{
+                    margin: 0,
+                    padding: '10px 16px',
+                    fontSize: 14,
+                    fontWeight: 500,
+                    borderRadius: 8,
+                    background: colors.bg,
+                    border: `1px solid ${colors.border}`,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    transition: 'all 0.2s ease',
+                    ':hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.08)'
+                    }
+                  }}
+                >
+                  <span style={{
+                    fontWeight: 600,
+                    color: colors.text,
+                    minWidth: 'max-content'
+                  }}>
+                    {category}
+                  </span>
+
+                  <Divider type="vertical" style={{
+                    height: 22,
+                    margin: '0 6px',
+                    borderColor: colors.border,
+                    opacity: 0.6
+                  }} />
+
+                  <span style={{
+                    color: colors.text,
+                    minWidth: 'max-content',
+                    fontWeight: 500
+                  }}>
+                    {total.toLocaleString()}L
+                  </span>
+
+                  <Divider type="vertical" style={{
+                    height: 22,
+                    margin: '0 6px',
+                    borderColor: colors.border,
+                    opacity: 0.6
+                  }} />
+
+                  <span style={{
+                    color: '#1d39c4',
+                    fontWeight: 600,
+                    minWidth: 'max-content',
+                    background: 'rgba(24, 144, 255, 0.1)',
+                    padding: '2px 6px',
+                    borderRadius: 4
+                  }}>
+                    {formatCurrencyalltotal(totalSum)}
+                  </span>
+                </Tag>
+              );
+            })}
+          </Space>
+        </Col>
+      </Row>
 
       <Table
         className="custom-table"

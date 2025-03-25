@@ -219,7 +219,7 @@ function Total_DuePage() {
       </div>
       <Table
         className="custom-table"
-        rowClassName={() => "pos-row"}
+        rowClassName={() => "pos-row text-2xl"}
         dataSource={state.list}
         columns={[
           {
@@ -237,7 +237,7 @@ function Total_DuePage() {
               </div>
             ),
           },
-        
+
           {
             key: "branch_name",
             title: (
@@ -300,13 +300,13 @@ function Total_DuePage() {
             ),
             // align: "center",
             // render: (item, data, index) => (
-              // <Space>
-              //   <Button
-              //     type="primary"
-              //     icon={<MdPayment />}
-              //     onClick={() => onClickPay(data)}
-              //   />
-              // </Space>
+            // <Space>
+            //   <Button
+            //     type="primary"
+            //     icon={<MdPayment />}
+            //     onClick={() => onClickPay(data)}
+            //   />
+            // </Space>
             // ),
           },
         ]}

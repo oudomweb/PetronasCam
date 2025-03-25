@@ -37,20 +37,20 @@
 .pos_tbl_invoice th,
 td {
   text-align: left;
-  font-size: 9px;
+  font-size: 10px;
   padding: 2px;
 }
 .khmer-text {
   font-family: 'Khmer OS Battambang', 'Khmer OS Muol', 'Khmer', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: bold;
-  color: #333; 
+  color: #000; 
 }
 .khmer-branch {
   font-family: 'Khmer OS Muol';
   font-size: 14px;
   font-weight: bold;
-  color: #333; 
+  color: #000; 
 }
 .pos-row {
   font-family: "Khmer OS Battambang", sans-serif;

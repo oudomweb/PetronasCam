@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Freehand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fasthand&family=Freehand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fasthand&family=Freehand&family=Moul&display=swap');
+
+.freehand-regular {
+    font-family: "Freehand", cursive;
+    font-weight: 400;
+}
+.fasthand-regular {
+    font-family: "Fasthand", cursive;
+    font-weight: 400;
+}
+  
+.moul-regular {
+    font-family: "Moul", serif;
+    font-weight: 200;
+  }
