@@ -9,32 +9,90 @@ import './printFont.css';
 const numberToKhmerWords = (number) => {
   const units = ["", "មួយ", "ពីរ", "បី", "បួន", "ប្រាំ", "ប្រាំមួយ", "ប្រាំពីរ", "ប្រាំបី", "ប្រាំបួន"];
   const tens = ["", "ដប់", "ម្ភៃ", "សាមសិប", "សែសិប", "ហាសិប", "ហុកសិប", "ចិតសិប", "ប៉ែតសិប", "កៅសិប"];
-  const scales = ["", "ពាន់", "ម៉ឺន", "លាន", "ប៊ីលាន", "ទ្រីលាន"];
+  const scales = ["", "ពាន់", "ម៉ឺន", "លាន", "ដប់លាន", "រយលាន", "ពាន់លាន"];
 
-  if (number === 0) return "សូន្យដុល្លារគត់";
+  const dollarPart = Math.floor(number);
+  const centPart = Math.round((number - dollarPart) * 100);
 
-  let words = "";
-  let scaleIndex = 0;
-
-  while (number > 0) {
-    const remainder = number % 1000;
-    if (remainder !== 0) {
-      let remainderWords = "";
-      if (remainder < 10) {
-        remainderWords = units[remainder];
-      } else if (remainder < 100) {
-        remainderWords = tens[Math.floor(remainder / 10)] + (remainder % 10 !== 0 ? units[remainder % 10] : "");
-      } else {
-        remainderWords = units[Math.floor(remainder / 100)] + "រយ" + (remainder % 100 !== 0 ? numberToKhmerWords(remainder % 100).replace("ដុល្លារគត់", "") : "");
-      }
-      words = remainderWords + scales[scaleIndex] + words;
+  const convertLessThanOneMillion = (num) => {
+    if (num === 0) return "";
+    let str = "";
+    
+    if (num >= 100000) {
+      const hundredThousands = Math.floor(num / 100000);
+      str += units[hundredThousands] + "រយ";
+      num %= 100000;
     }
-    number = Math.floor(number / 1000);
-    scaleIndex++;
+
+    if (num >= 10000) {
+      const tenThousands = Math.floor(num / 10000);
+      str += tens[tenThousands];
+      num %= 10000;
+    }
+
+    if (num >= 1000) {
+      const thousands = Math.floor(num / 1000);
+      str += units[thousands] + "ពាន់";
+      num %= 1000;
+    }
+
+    if (num >= 100) {
+      const hundreds = Math.floor(num / 100);
+      str += units[hundreds] + "រយ";
+      num %= 100;
+    }
+
+    if (num >= 10) {
+      const ten = Math.floor(num / 10);
+      str += tens[ten];
+      num %= 10;
+    }
+
+    if (num > 0) {
+      str += units[num];
+    }
+
+    return str;
+  };
+
+  let dollarWords = "";
+  let remaining = dollarPart;
+
+  if (remaining === 0) {
+    dollarWords = "សូន្យ";
+  } else {
+    const millions = Math.floor(remaining / 1000000);
+    remaining %= 1000000;
+    
+    if (millions > 0) {
+      dollarWords += convertLessThanOneMillion(millions) + "លាន";
+    }
+    
+    dollarWords += convertLessThanOneMillion(remaining);
   }
 
-  return words.trim() + "ដុល្លារគត់";
+  let centWords = "";
+  if (centPart > 0) {
+    if (centPart < 10) {
+      centWords = units[centPart] + "សេន";
+    } else {
+      const ten = Math.floor(centPart / 10);
+      const unit = centPart % 10;
+      centWords = tens[ten] + (unit !== 0 ? units[unit] : "") + "សេន";
+    }
+  }
+
+  if (dollarPart > 0 && centPart > 0) {
+    return dollarWords.trim() + "ដុល្លារនិង" + centWords;
+  } else if (dollarPart > 0) {
+    return dollarWords.trim() + "ដុល្លារគត់";
+  } else if (centPart > 0) {
+    return centWords;
+  } else {
+    return "សូន្យដុល្លារគត់";
+  }
 };
+
 
 const PrintInvoice = React.forwardRef((props, ref) => {
   const profile = getProfile();
@@ -60,66 +118,46 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
   const formatNumber = (value, withDollar = false) => {
     const number = parseFloat(value) || 0;
-    const rounded = Math.ceil(number); // Round UP to nearest dollar
-    const formatted = rounded.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+    const formatted = number.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
-    return withDollar ? `${formatted}$` : formatted;
+    return withDollar ? `$${formatted}` : formatted;
   };
 
   const formatGrandTotal = (value, withDollar = false) => {
-    const number = parseFloat(value) || 0;
-    const rounded = Math.ceil(number); // Round UP to nearest dollar
-    const formatted = rounded.toLocaleString('en-US', {
-      minimumFractionDigits: 2,  // កំណត់ឱ្យមានយ៉ាងហោចណាស់ 2 ខ្ទង់ទសភាគ
-      maximumFractionDigits: 2   // កំណត់ឱ្យមានអតិបរមា 2 ខ្ទង់ទសភាគ
-    });
-    return withDollar ? `${formatted}$` : formatted;
+    return formatNumber(value, withDollar); // Use same formatting as item totals
   };
+
   const FormatQTY = (value) => {
     const number = parseFloat(value) || 0;
     return number.toLocaleString('en-US');
   };
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+
+
   const formatUnitPrice = (value) => {
     const number = parseFloat(value) || 0;
-    return Math.floor(number); // Removes decimal part completely
+    return Math.floor(number);
   };
 
-  const calculateTax = () => {
-    const subtotal = parseFloat(objSummary.sub_total) || 0;
-    const taxRate = parseFloat(objSummary.tax) || 0;
-    return (subtotal * taxRate) / 100;
-  };
 
-  // Calculate total amount
+
+  // Calculate total amount without rounding
   const totalAmount = cart_list.reduce(
-    (sum, item) =>
-      sum +
-      (item.cart_qty * item.unit_price) / (item.actual_price || 1),
+    (sum, item) => sum + (item.cart_qty * item.unit_price) / (item.actual_price || 1),
     0
   );
 
-  // Round total amount UP to the nearest dollar (ceiling instead of regular rounding)
-  const roundedTotal = Math.ceil(totalAmount);
+  const displayAmount = totalAmount; // No rounding
+  const displayWords = numberToKhmerWords(displayAmount);
 
-  // Convert rounded total to Khmer words
-  const totalInKhmerWords = numberToKhmerWords(roundedTotal);
   const formatPhoneNumber = (phone) => {
     if (!phone) return "";
     return phone.split("/").join(" / ");
   }
+
   return (
-    <div ref={ref} className="p-8 max-w-4xl mx-auto ">
+    <div ref={ref} className="p-8 px-14 max-w-4xl mx-auto ">
       <div className="flex justify-between items-center">
         <div className="items-center">
           <img
@@ -130,7 +168,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
         </div>
 
 
-        <div className="flex flex-col items-center justify-center text-center flex-1">
+        <div className="flex flex-col items-center justify-center text-center flex-1 relative me-16 mt-10">
           <h2 className="text-2xl khmer-text moul-regular ">វិក្កយប័ត្រ</h2>
           <h2 className="text-xl khmer-text">INVOICE</h2>
         </div>
@@ -139,7 +177,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
-  <div className="w-full">
+  <div className="w-full mt-2">
     <div className="grid gap-y-1">
       <p className=" khmer-text font-bold  text-black">
       ឈ្មោះអតិថិជន:
@@ -153,8 +191,8 @@ const PrintInvoice = React.forwardRef((props, ref) => {
     </div>
   </div>
 
-  <div className="w-full flex justify-end">
-  <div className="w-[80%] grid grid-cols-[55%_3%_43%]  gap-y-1 p-2 rounded-lg">
+  <div className="w-full flex justify-end relative ms-4 ">
+  <div className="w-[80%] grid grid-cols-[57%_1%_43%]  gap-y-1 p-2 rounded-lg">
 
     <div className="text-start flex flex-col items-start">
       <p className="khmer-text font-medium">លេខវិក្កយប័ត្រ</p>
@@ -186,22 +224,20 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
 
 </div>
-
-
-      <div className="w-full mb-8 overflow-x-auto">
+      <div className="w-full mb-4 overflow-x-auto">
         <table className="w-full border-collapse border border-gray-500">
           <thead className="border border-gray-500 text-black">
             <tr>
               <th className="border border-gray-500 p-[2px] min-w-[0px] khmer-text font-semibold text-center">
                 <div className="flex flex-col items-center leading-tight">
-                  <span className="text-xs  khmer-text font-semibold">ល.រ</span>
-                  <span className="text-[10px]">No</span>
+                  <span className=" khmer-text font-semibold">ល.រ</span>
+                  <span className="">No</span>
                 </div>
               </th>
 
 
               <th className="border border-gray-500 p-1 w-5/12 text-center khmer-text font-semibold">
-                <span>ការពិពណ៌នា</span>
+                <span>បរិយាយមុខទំនិញ</span>
                 <br /> <span>Description</span>
               </th>
               <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text font-semibold">
@@ -209,7 +245,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
                 <br /> <span>Quantity(Liters)</span>
               </th>
               <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text font-semibold">
-                <span>តម្លៃរាយ</span>
+                <span>តម្លៃតោន</span>
                 <br /> <span>Ton Price</span>
               </th>
               <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text font-semibold">
@@ -219,33 +255,34 @@ const PrintInvoice = React.forwardRef((props, ref) => {
             </tr>
           </thead>
           <tbody className="border border-gray-500">
-            {cart_list.map((item, index) => {
+            {Array(4).fill({ cart_qty: 0, unit_price: 0, actual_price: 0 ,category_name:'fdsafsafasfsdfsadfsadf' }).map((item, index) => {
               // Calculate individual item total correctly
               const itemTotal = (item.cart_qty * item.unit_price) / (item.actual_price || 1);
               const formattedItemTotal = formatNumber(itemTotal);
 
               return (
-                <tr key={index} className="hover:bg-gray-50 p-1">
-                  <td className="border border-gray-500 p-1 text-center khmer-text font-medium">
+                <>
+                <tr  key={index} className="hover:bg-gray-50 ">
+                  <td className="border border-gray-500  text-center khmer-text font-medium">
                     {index + 1}
                   </td>
-                  <td className="border border-gray-500 p-4 text-left khmer-text font-medium">
+                  <td className="border border-gray-500 text-center p-2  khmer-text font-medium">
                     {item.category_name}
                   </td>
-                  <td className="border border-gray-500 p-1  text-center khmer-text font-medium">
+                  <td className="border border-gray-500   text-center khmer-text font-medium">
                     {FormatQTY(item.cart_qty)} <span className="text-sm">{item.unit}</span>
                   </td>
 
-                  <td className="border border-gray-500 p-1 text-right khmer-text font-medium">
-                    <div className="w-100 h-100 flex justify-between">
-                      <span>$</span>
-                      <span>{formatUnitPrice(item.unit_price)}</span>
+                  <td className="border border-gray-500  text-center khmer-text font-medium">
+                    <div className="w-100 h-100 ">
+                      <span>$ {formatUnitPrice(item.unit_price)}</span>
                     </div>
                   </td>
-                  <td className="border border-gray-500 p-1 text-right font-bold khmer-text font-medium">
+                  <td className="border border-gray-500  text-center font-bold khmer-text font-medium">
                     $ {formattedItemTotal}
                   </td>
                 </tr>
+                </>
               );
             })}
 
@@ -253,15 +290,15 @@ const PrintInvoice = React.forwardRef((props, ref) => {
             {/* Grand Total Row */}
             <tr className="font-bold">
               <td className="border text-center border-gray-500 p-2 khmer-text font-medium" colSpan={2}>
-                {totalInKhmerWords}
+                {displayWords}
               </td>
               <td className="border border-gray-500 p-1 text-center khmer-text font-medium" colSpan={2}>
                 តម្លៃរាយសរុប Grand Total
               </td>
               <td className="border border-gray-500 p-1 text-right khmer-text font-medium">
-                <div className="w-100 h-100 flex justify-between">
-                  <span>$</span>
-                  <span>{formatNumber(roundedTotal)}</span>
+                <div className="w-100 h-100">
+                  <span></span>
+                  <span>$ {formatGrandTotal(displayAmount)}</span>
                 </div>
               </td>
             </tr>
@@ -280,10 +317,10 @@ const PrintInvoice = React.forwardRef((props, ref) => {
                 colSpan={5}
               >
                 <div className="grid grid-cols-2 text-center khmer-text font-medium gap-4">
-                  <div className="mt-4 mb-10">
+                  <div className="mt-2 mb-10">
                     <p className="font-bold mb-2 khmer-text font-medium">អតិថិជន</p>
                     <p className="khmer-text font-medium">Customer:</p>
-                    <p className="mt-32 khmer-text font-medium">....................</p>
+                    <p className="mt-28 khmer-text font-medium">....................</p>
                     <p className="mt-2 khmer-text font-medium">ហត្ថលេខា</p>
                     <p className="mt-2 khmer-text font-medium">ការបរិច្ឆទ Date:</p>
 
@@ -292,10 +329,10 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
                     <p className="mt-2 text-md"> ....../....../.....</p>
                   </div>
-                  <div className="text-center mt-4 mb-10 khmer-text font-medium px-32">
+                  <div className="text-center mt-2 mb-10 khmer-text font-medium px-32">
                     <p className="font-bold mb-2 khmer-text font-medium">គណនេយ្យករ</p>
                     <p className="khmer-text font-medium">Accountant:</p>
-                    <p className="mt-32 khmer-text font-medium">....................</p>
+                    <p className="mt-28 khmer-text font-medium">....................</p>
                     <p className="mt-2 khmer-text font-medium">ហត្ថលេខា</p>
                     <p className="mt-2 khmer-text font-medium">ការបរិច្ឆទ Date:</p>
                     <div className="mt-8"></div>
@@ -308,6 +345,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
             </tr>
           </tbody>
         </table>
+
       </div>
       <div className="text-center font-medium">
         <p>ទំនាក់ទំនងផ្នែកទីផ្សារ: {formatPhoneNumber(profile?.tel)} </p>
