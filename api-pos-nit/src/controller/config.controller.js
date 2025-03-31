@@ -125,6 +125,23 @@ exports.getList = async (req, res) => {
       { label: "ប្រេងឥន្ធនៈ", value: "oil" },
     ];
 
+    const userId = req.auth.id; // Changed from req.user.id
+
+const [customers_with_due] = await db.query(`
+  SELECT 
+    c.id AS value,
+    c.name AS label,
+    SUM(o.total_amount - o.paid_amount) AS total_due,
+    o.user_id
+  FROM \`order\` o
+  JOIN customer c ON o.customer_id = c.id
+  WHERE (o.total_amount - o.paid_amount) > 0
+    AND o.user_id = ?
+  GROUP BY c.id, c.name, o.user_id
+  ORDER BY c.name ASC
+`, [userId]);
+
+
     // const expanse_id = ("SELECT expense_type_id AS FROM expense");
     // const [customer_name] = await db.query(
     //   "SELECT name FROM customer WHERE id = ?",
@@ -148,7 +165,8 @@ exports.getList = async (req, res) => {
       company_name,
       user,
       branch_name,
-      product
+      product,
+      customers_with_due
       // expanse_id
       // customer_name
     });

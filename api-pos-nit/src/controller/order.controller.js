@@ -1,165 +1,5 @@
 const { db, isArray, isEmpty, logError } = require("../util/helper");
 
-
-
-// exports.getList = async (req, res) => {
-//   try {
-
-//     var from_date = req.query.from_date;
-//     var to_date = req.query.to_date;
-//     var txtSearch = req.query.txtSearch;
-//     var sqlSelect = "SELECT o.*, c.name AS customer_name, c.tel AS customer_tel, c.address AS customer_address ";
-//     var sqlJoin = " FROM `order` o LEFT JOIN customer c ON o.customer_id = c.id ";
-//     var sqlWhere = " WHERE true "; // Ensure spacing
-
-//     if (!isEmpty(from_date) && isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') >= :from_date `;
-//     } else if (!isEmpty(from_date) && !isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') BETWEEN :from_date AND :to_date `;
-//     } else if (isEmpty(from_date) && !isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') <= :to_date `;
-//     }
-
-
-//     const sqlParams = {
-//       txtSearch: "%" + txtSearch + "%",
-//       from_date: from_date,
-//       to_date: to_date
-//     };
-//     if (!isEmpty(txtSearch)) {
-//       sqlWhere += " AND o.order_no LIKE :txtSearch "; // Use `?` for parameterized queries
-
-
-//     }
-
-//     var sqlList = sqlSelect + sqlJoin + sqlWhere;
-//     var sqlSummary = "SELECT COUNT(o.id) AS total_order, COALESCE(SUM(o.total_amount), 0) AS total_amount " + sqlJoin + sqlWhere;
-
-//     // Execute queries
-//     const [list] = await db.query(sqlList, sqlParams);
-//     const [summaryArray] = await db.query(sqlSummary, sqlParams);
-
-//     // Extract first item from summary array
-//     const summary = summaryArray?.[0] || { total_order: 0, total_amount: 0 };
-
-//     // Return JSON response
-//     res.json({
-//       list: list,
-//       summary: summary, // Ensure summary is an object, not an array
-//     });
-//   } catch (error) {
-//     logError("order.getList", error, res);
-//   }
-// };
-// exports.getList = async (req, res) => {
-//   try {
-//     var from_date = req.query.from_date;
-//     var to_date = req.query.to_date;
-//     var txtSearch = req.query.txtSearch;
-
-//     var sqlSelect = "SELECT o.*, c.name AS customer_name, c.tel AS customer_tel, c.address AS customer_address ";
-//     var sqlJoin = " FROM `order` o LEFT JOIN customer c ON o.customer_id = c.id ";
-//     var sqlWhere = " WHERE true "; // Ensure spacing
-
-//     if (!isEmpty(from_date) && isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') >= :from_date `;
-//     } else if (!isEmpty(from_date) && !isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') BETWEEN :from_date AND :to_date `;
-//     } else if (isEmpty(from_date) && !isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') <= :to_date `;
-//     }
-
-//     const sqlParams = {
-//       txtSearch: "%" + txtSearch + "%",
-//       from_date: from_date,
-//       to_date: to_date
-//     };
-
-//     if (!isEmpty(txtSearch)) {
-//       sqlWhere += " AND o.order_no LIKE :txtSearch ";
-//     }
-
-//     // Append ORDER BY to sort by create_at in descending order
-//     var sqlList = sqlSelect + sqlJoin + sqlWhere + " ORDER BY o.create_at DESC";
-//     var sqlSummary = "SELECT COUNT(o.id) AS total_order, COALESCE(SUM(o.total_amount), 0) AS total_amount " 
-//       + sqlJoin + sqlWhere; // No need for ORDER BY in summary queries
-
-//     // Execute queries
-//     const [list] = await db.query(sqlList, sqlParams);
-//     const [summaryArray] = await db.query(sqlSummary, sqlParams);
-
-//     // Extract first item from summary array
-//     const summary = summaryArray?.[0] || { total_order: 0, total_amount: 0 };
-
-//     // Return JSON response
-//     res.json({
-//       list: list,
-//       summary: summary, // Ensure summary is an object, not an array
-//     });
-//   } catch (error) {
-//     logError("order.getList", error, res);
-//   }
-// };
-// exports.getList = async (req, res) => {
-//   try {
-//     var from_date = req.query.from_date;
-//     var to_date = req.query.to_date;
-//     var txtSearch = req.query.txtSearch;
-//     var user_id = req.query.user_id;
-
-//     var sqlSelect = `
-//       SELECT o.*, c.name AS customer_name, c.tel AS customer_tel, c.address AS customer_address 
-//     `;
-//     var sqlJoin = `
-//       FROM \`order\` o 
-//       LEFT JOIN customer c ON o.customer_id = c.id 
-//     `;
-//     var sqlWhere = " WHERE true "; // Ensure spacing
-
-//     if (!isEmpty(from_date) && isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') >= :from_date `;
-//     } else if (!isEmpty(from_date) && !isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') BETWEEN :from_date AND :to_date `;
-//     } else if (isEmpty(from_date) && !isEmpty(to_date)) {
-//       sqlWhere += ` AND DATE_FORMAT(o.create_at, '%Y-%m-%d') <= :to_date `;
-//     }
-
-//     if (!isEmpty(txtSearch)) {
-//       sqlWhere += " AND o.order_no LIKE :txtSearch ";
-//     }
-
-//     if (!isEmpty(user_id)) {
-//       sqlWhere += " AND o.user_id = :user_id ";
-//     }
-
-//     const sqlParams = {
-//       txtSearch: "%" + txtSearch + "%",
-//       from_date: from_date,
-//       to_date: to_date,
-//       user_id: user_id,
-//     };
-
-//     var sqlList = sqlSelect + sqlJoin + sqlWhere + " ORDER BY o.create_at DESC";
-//     var sqlSummary = `
-//       SELECT COUNT(o.id) AS total_order, COALESCE(SUM(o.total_amount), 0) AS total_amount 
-//       ${sqlJoin} ${sqlWhere}
-//     `;
-
-//     const [list] = await db.query(sqlList, sqlParams);
-//     const [summaryArray] = await db.query(sqlSummary, sqlParams);
-
-//     const summary = summaryArray?.[0] || { total_order: 0, total_amount: 0 };
-
-//     res.json({
-//       list: list,
-//       summary: summary,
-//     });
-//   } catch (error) {
-//     logError("order.getList", error, res);
-//   }
-// };
-
-
 exports.getList = async (req, res) => {
   try {
     var from_date = req.query.from_date;
@@ -561,5 +401,33 @@ exports.remove = async (req, res) => {
     });
   } catch (error) {
     logError("order.remove", error, res);
+  }
+};
+exports.processPayment = async (req, res) => {
+  try {
+    const { customer_id, order_id, amount, payment_method } = req.body;
+    
+    // 1. Update the order's paid amount
+    await db.query(
+      `UPDATE \`order\` 
+       SET paid_amount = paid_amount + ?, 
+           payment_method = ?,
+           payment_status = IF((total_amount - paid_amount - ?) <= 0, 'Paid', 'Partial')
+       WHERE id = ?`,
+      [amount, payment_method, amount, order_id]
+    );
+    
+    // 2. Create payment record
+    await db.query(
+      `INSERT INTO payments 
+       (order_id, customer_id, amount, payment_method, payment_date)
+       VALUES (?, ?, ?, ?, NOW())`,
+      [order_id, customer_id, amount, payment_method]
+    );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Payment processing error:", error);
+    res.status(500).json({ error: "Payment processing failed" });
   }
 };

@@ -700,7 +700,7 @@ function ProductPage() {
       </Row>
 
       <Table
-        className="custom-table"
+        scroll={{ x: 'max-content' }}
         rowClassName={() => "pos-row"}
         dataSource={state.list}
         pagination={{
@@ -715,6 +715,7 @@ function ProductPage() {
         columns={[
           {
             key: "name",
+            width: 200,
             title: (
               <div className="table-header">
                 <div className="khmer-text">ឈ្មោះ</div>
@@ -743,7 +744,7 @@ function ProductPage() {
             key: "description",
             title: (
               <div className="table-header">
-                <div className="khmer-text">សេចក្ដីពិពណ៌នា</div>
+                <div className="khmer-text">សាលាកប័ត្រឃ្លាំង</div>
                 <div className="english-text">Description</div>
               </div>
             ),
@@ -764,16 +765,6 @@ function ProductPage() {
             ),
             dataIndex: "category_name",
           },
-          // {
-          //   key: "brand",
-          //   title: (
-          //     <div className="table-header">
-          //       <div className="khmer-text">ម៉ាក</div>
-          //       <div className="english-text">Brand</div>
-          //     </div>
-          //   ),
-          //   dataIndex: "brand",
-          // },
           {
             key: "company_name",
             title: (
@@ -837,17 +828,6 @@ function ProductPage() {
             dataIndex: "total_price",
             render: (text) => formatCurrency(Math.round(text)), // Round to nearest whole number
           },
-
-          // {
-          //   key: "discount",
-          //   title: (
-          //     <div className="table-header">
-          //       <div className="khmer-text">បញ្ចុះតម្លៃ</div>
-          //       <div className="english-text">Discount</div>
-          //     </div>
-          //   ),
-          //   dataIndex: "discount",
-          // },
           {
             key: "status",
             title: (

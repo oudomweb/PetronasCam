@@ -104,7 +104,7 @@ const items_menu = [
     icon: <UserOutlined />,
     className: "list-Customer-item khmrt-branch",
   },
- 
+
   {
     label: "ចំណាយ",
     icon: <DollarOutlined />,
@@ -309,6 +309,7 @@ const MainLayout = () => {
       <Sider
         collapsible
         collapsed={collapsed}
+        width={250}
         onCollapse={(value) => setCollapsed(value)}
       >
         <div className="demo-logo-vertical" />

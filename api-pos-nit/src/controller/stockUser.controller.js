@@ -287,45 +287,6 @@ exports.getList = async (req, res) => {
 //   }
 // };
 
-exports.gettotal_due = async (req, res) => {
-  try {
-    // Fetch total due per customer
-    const [list] = await db.query(`
-      SELECT 
-        o.customer_id, 
-        c.name AS customer_name,
-        c.address AS branch_name,
-        c.tel AS tel,
-        u.create_by AS create_by,
-        o.create_at AS order_date,
-        r.name AS province_name,
-        SUM(o.total_amount - o.paid_amount) AS total_due  -- Sum total_due for each customer
-      FROM \`order\` o
-      JOIN customer c ON o.customer_id = c.id
-      JOIN user u ON o.user_id = u.id
-      JOIN role r ON u.role_id = r.id
-      WHERE (o.total_amount - o.paid_amount) > 0
-      GROUP BY o.customer_id  -- Group by customer ID
-      ORDER BY MAX(o.create_at) DESC; -- Order by latest order date
-    `);
-
-    res.json({
-      i_know_you_are_id: req.current_id || null,
-      list: list, // List contains unique customers with total due amount
-    });
-  } catch (error) {
-    logError("user_stock.getList", error, res);
-  }
-};
-
-
-
-
-
-
-
-
-
 
 exports.updateTotalDue = async (req, res) => {
   try {
@@ -370,5 +331,111 @@ exports.updateTotalDue = async (req, res) => {
     console.error("Error in updateTotalDue:", error);
     logError("user_stock.updateTotalDue", error, res);
     return res.status(500).json({ error: "Server error processing payment update" });
+  }
+};
+
+exports.gettotal_due = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { search, customer_id, category_id, brand } = req.query;
+    
+    // Base SQL query
+    let sqlQuery = `
+      SELECT 
+        o.order_no AS INV_NUMBER, 
+        o.id,
+        o.customer_id, 
+        c.name AS customer_name,
+        c.address AS branch_name,
+        c.tel AS tel,
+        u.username AS create_by,
+        o.create_at AS order_date,
+        r.name AS Role_Name,
+        (o.total_amount - o.paid_amount) AS due_amount,
+        CASE 
+          WHEN (o.total_amount - o.paid_amount) = 0 THEN 'Paid'
+          WHEN o.paid_amount > 0 THEN 'Partial'
+          ELSE 'Unpaid'
+        END AS payment_status
+      FROM \`order\` o
+      JOIN customer c ON o.customer_id = c.id
+      JOIN user u ON o.user_id = u.id
+      JOIN role r ON u.role_id = r.id
+      WHERE (o.total_amount - o.paid_amount) > 0
+      AND o.user_id = ?
+    `;
+
+    const queryParams = [user_id];
+
+    // Add customer filter if provided
+    if (customer_id) {
+      sqlQuery += ` AND o.customer_id = ?`;
+      queryParams.push(customer_id);
+    }
+
+    // Add category filter if provided (assuming orders have category relationships)
+    if (category_id) {
+      sqlQuery += ` AND EXISTS (
+        SELECT 1 FROM order_items oi
+        JOIN product p ON oi.product_id = p.id
+        WHERE oi.order_id = o.id AND p.category_id = ?
+      )`;
+      queryParams.push(category_id);
+    }
+
+    // Add brand filter if provided
+    if (brand) {
+      sqlQuery += ` AND EXISTS (
+        SELECT 1 FROM order_items oi
+        JOIN product p ON oi.product_id = p.id
+        WHERE oi.order_id = o.id AND p.brand = ?
+      )`;
+      queryParams.push(brand);
+    }
+
+    // Add search conditions if search term exists
+    if (search && search.trim() !== '') {
+      const searchTerm = `%${search.trim()}%`;
+      sqlQuery += `
+        AND (
+          c.name LIKE ? OR 
+          c.tel LIKE ? OR 
+          o.order_no LIKE ?
+        )
+      `;
+      queryParams.push(searchTerm, searchTerm, searchTerm);
+    }
+
+    // Add sorting
+    sqlQuery += ` ORDER BY o.create_at DESC`;
+
+    // Add pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    
+    // Count total before applying limit
+    const [countResult] = await db.query(
+      `SELECT COUNT(*) as total FROM (${sqlQuery}) as count_query`, 
+      queryParams
+    );
+    const total = countResult[0]?.total || 0;
+    
+    // Apply limit to the main query
+    sqlQuery += ` LIMIT ? OFFSET ?`;
+    queryParams.push(limit, offset);
+
+    // Execute query for list
+    const [list] = await db.query(sqlQuery, queryParams);
+
+    res.json({
+      list: list,
+      total: total,
+      page: page,
+      limit: limit
+    });
+  } catch (error) {
+    console.error("Error in gettotal_due:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

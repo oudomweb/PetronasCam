@@ -17,7 +17,7 @@ const numberToKhmerWords = (number) => {
   const convertLessThanOneMillion = (num) => {
     if (num === 0) return "";
     let str = "";
-    
+
     if (num >= 100000) {
       const hundredThousands = Math.floor(num / 100000);
       str += units[hundredThousands] + "រយ";
@@ -63,11 +63,11 @@ const numberToKhmerWords = (number) => {
   } else {
     const millions = Math.floor(remaining / 1000000);
     remaining %= 1000000;
-    
+
     if (millions > 0) {
       dollarWords += convertLessThanOneMillion(millions) + "លាន";
     }
-    
+
     dollarWords += convertLessThanOneMillion(remaining);
   }
 
@@ -118,12 +118,21 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
   const formatNumber = (value, withDollar = false) => {
     const number = parseFloat(value) || 0;
-    const formatted = number.toLocaleString('en-US', {
+
+    // Format the number to have at most 2 decimal places
+    let formatted = number.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+
+    // Remove the decimal part if it's .00
+    if (formatted.endsWith('.00')) {
+      formatted = formatted.slice(0, -3);
+    }
+
     return withDollar ? `$${formatted}` : formatted;
   };
+
 
   const formatGrandTotal = (value, withDollar = false) => {
     return formatNumber(value, withDollar); // Use same formatting as item totals
@@ -142,7 +151,6 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
 
 
-  // Calculate total amount without rounding
   const totalAmount = cart_list.reduce(
     (sum, item) => sum + (item.cart_qty * item.unit_price) / (item.actual_price || 1),
     0
@@ -169,119 +177,119 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
 
         <div className="flex flex-col items-center justify-center text-center flex-1 relative me-16 mt-10">
-          <h2 className="text-2xl khmer-text moul-regular ">វិក្កយប័ត្រ</h2>
-          <h2 className="text-xl khmer-text">INVOICE</h2>
+          <h2 className="text-2xl text-[15px] moul-regular ">វិក្កយប័ត្រ</h2>
+          <h2 className="text-xl text-[15px]">INVOICE</h2>
         </div>
 
         <div className="w-16 h-16"></div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
-  <div className="w-full mt-2">
-    <div className="grid gap-y-1">
-      <p className=" khmer-text font-bold  text-black">
-      ឈ្មោះអតិថិជន:
-      {objSummary?.customer_name || "N/A"}
-      </p>
-      <p className="khmer-text font-medium">
-        អាស័យដ្ឋាន: <span className="freehand-regular text-[11px]">{objSummary?.customer_address || "N/A"}</span>
-      </p>
-      <p className="khmer-text font-medium">លេខទូរស័ព្ទ: {objSummary?.customer_tel || "N/A"}</p>
-      <p className="khmer-text font-medium">គោលដៅ: {objSummary.user_name || "N/A"}</p>
-    </div>
-  </div>
+        <div className="w-full mt-2">
+          <div className="grid gap-y-1">
+            <p className=" text-[15px] font-bold  text-black">
+              ឈ្មោះអតិថិជន:
+              {objSummary?.customer_name || "N/A"}
+            </p>
+            <p className="text-[15px] font-medium">
+              អាស័យដ្ឋាន: <span className="freehand-regular text-[11px]">{objSummary?.customer_address || "N/A"}</span>
+            </p>
+            <p className="text-[15px] font-medium">លេខទូរស័ព្ទ: {objSummary?.customer_tel || "N/A"}</p>
+            <p className="text-[15px] font-medium">គោលដៅ: {objSummary.user_name || "N/A"}</p>
+          </div>
+        </div>
 
-  <div className="w-full flex justify-end relative ms-4 ">
-  <div className="w-[80%] grid grid-cols-[57%_1%_43%]  gap-y-1 p-2 rounded-lg">
+        <div className="w-full flex justify-end relative ms-4 ">
+          <div className="w-[80%] grid grid-cols-[57%_1%_43%]  gap-y-1 p-2 rounded-lg">
 
-    <div className="text-start flex flex-col items-start">
-      <p className="khmer-text font-medium">លេខវិក្កយប័ត្រ</p>
-      <p className="khmer-text font-medium">ថ្ងៃបញ្ជាទិញ</p>
-      <p className="khmer-text font-medium">ថ្ងៃប្រគល់ទំនិញ</p>
-      <p className="khmer-text font-medium">លេខបញ្ជាទិញ</p>
-      <p className="khmer-text font-medium">លេខបណ្ណបញ្ចេញទំនិញ</p>
-    </div>
-
-
-    <div className="flex flex-col items-center">
-      <p className="khmer-text font-medium">:</p>
-      <p className="khmer-text font-medium">:</p>
-      <p className="khmer-text font-medium">:</p>
-      <p className="khmer-text font-medium">:</p>
-      <p className="khmer-text font-medium">:</p>
-    </div>
-
-    <div className="text-start flex flex-col ">
-      <p className="khmer-text font-medium">{objSummary.order_no}</p>
-      <p className="khmer-text font-medium">{formatDateClient(objSummary.order_date)}</p>
-      <p className="khmer-text font-medium">{formatDateClient(objSummary.order_date)}</p>
-      <p className="khmer-text font-medium">{objSummary.order_no ? `#SA-${objSummary.order_no}` : ""}</p>
-      <p className="khmer-text font-medium">...................</p>
-    </div>
-  </div>
-</div>
+            <div className="text-start flex flex-col items-start">
+              <p className="text-[15px] font-medium">លេខវិក្កយប័ត្រ</p>
+              <p className="text-[15px] font-medium">ថ្ងៃបញ្ជាទិញ</p>
+              <p className="text-[15px] font-medium">ថ្ងៃប្រគល់ទំនិញ</p>
+              <p className="text-[15px] font-medium">លេខបញ្ជាទិញ</p>
+              <p className="text-[15px] font-medium">លេខបណ្ណបញ្ចេញទំនិញ</p>
+            </div>
 
 
+            <div className="flex flex-col items-center">
+              <p className="text-[15px] font-medium">:</p>
+              <p className="text-[15px] font-medium">:</p>
+              <p className="text-[15px] font-medium">:</p>
+              <p className="text-[15px] font-medium">:</p>
+              <p className="text-[15px] font-medium">:</p>
+            </div>
 
-</div>
+            <div className="text-start flex flex-col ">
+              <p className="text-[15px] font-medium">{objSummary.order_no}</p>
+              <p className="text-[15px] font-medium">{formatDateClient(objSummary.order_date)}</p>
+              <p className="text-[15px] font-medium">....../....../.....</p>
+              <p className="text-[15px] font-medium">{objSummary.order_no ? `#SA-${objSummary.order_no}` : ""}</p>
+              <p className="text-[15px] font-medium">...................</p>
+            </div>
+          </div>
+        </div>
+
+
+
+      </div>
       <div className="w-full mb-4 overflow-x-auto">
         <table className="w-full border-collapse border border-gray-500">
           <thead className="border border-gray-500 text-black">
             <tr>
-              <th className="border border-gray-500 p-[2px] min-w-[0px] khmer-text font-semibold text-center">
+              <th className="border border-gray-500 p-[2px] min-w-[0px] text-[15px] font-semibold text-center">
                 <div className="flex flex-col items-center leading-tight">
-                  <span className=" khmer-text font-semibold">ល.រ</span>
+                  <span className=" text-[15px] font-semibold">ល.រ</span>
                   <span className="">No</span>
                 </div>
               </th>
 
 
-              <th className="border border-gray-500 p-1 w-5/12 text-center khmer-text font-semibold">
+              <th className="border border-gray-500 p-1 w-5/12 text-center text-[15px] font-semibold">
                 <span>បរិយាយមុខទំនិញ</span>
                 <br /> <span>Description</span>
               </th>
-              <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text font-semibold">
+              <th className="border border-gray-500 p-1 w-2/12 text-center text-[15px] font-semibold">
                 <span>បរិមាណ</span>
                 <br /> <span>Quantity(Liters)</span>
               </th>
-              <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text font-semibold">
+              <th className="border border-gray-500 p-1 w-2/12 text-center text-[15px] font-semibold">
                 <span>តម្លៃតោន</span>
                 <br /> <span>Ton Price</span>
               </th>
-              <th className="border border-gray-500 p-1 w-2/12 text-center khmer-text font-semibold">
+              <th className="border border-gray-500 p-1 w-2/12 text-center text-[15px] font-semibold">
                 <span>តម្លៃសរុប</span>
                 <br /> <span>Amount</span>
               </th>
             </tr>
           </thead>
           <tbody className="border border-gray-500">
-            {Array(4).fill({ cart_qty: 0, unit_price: 0, actual_price: 0 ,category_name:'fdsafsafasfsdfsadfsadf' }).map((item, index) => {
+            {cart_list?.map((item, index) => {
               // Calculate individual item total correctly
               const itemTotal = (item.cart_qty * item.unit_price) / (item.actual_price || 1);
               const formattedItemTotal = formatNumber(itemTotal);
 
               return (
                 <>
-                <tr  key={index} className="hover:bg-gray-50 ">
-                  <td className="border border-gray-500  text-center khmer-text font-medium">
-                    {index + 1}
-                  </td>
-                  <td className="border border-gray-500 text-center p-2  khmer-text font-medium">
-                    {item.category_name}
-                  </td>
-                  <td className="border border-gray-500   text-center khmer-text font-medium">
-                    {FormatQTY(item.cart_qty)} <span className="text-sm">{item.unit}</span>
-                  </td>
+                  <tr key={index} className="hover:bg-gray-50 ">
+                    <td className="border border-gray-500  text-center text-[15px] font-medium">
+                      {index + 1}
+                    </td>
+                    <td className="border border-gray-500 text-center p-2  text-[15px] font-medium">
+                      {item.category_name}
+                    </td>
+                    <td className="border border-gray-500   text-center text-[15px] font-medium">
+                      {FormatQTY(item.cart_qty)} <span className="text-sm">{item.unit}</span>
+                    </td>
 
-                  <td className="border border-gray-500  text-center khmer-text font-medium">
-                    <div className="w-100 h-100 ">
-                      <span>$ {formatUnitPrice(item.unit_price)}</span>
-                    </div>
-                  </td>
-                  <td className="border border-gray-500  text-center font-bold khmer-text font-medium">
-                    $ {formattedItemTotal}
-                  </td>
-                </tr>
+                    <td className="border border-gray-500  text-center text-[15px] font-medium">
+                      <div className="w-100 h-100 ">
+                        <span>$ {formatUnitPrice(item.unit_price)}</span>
+                      </div>
+                    </td>
+                    <td className="border border-gray-500  text-center font-bold text-[15px] font-medium">
+                      $ {formattedItemTotal}
+                    </td>
+                  </tr>
                 </>
               );
             })}
@@ -289,13 +297,13 @@ const PrintInvoice = React.forwardRef((props, ref) => {
 
             {/* Grand Total Row */}
             <tr className="font-bold">
-              <td className="border text-center border-gray-500 p-2 khmer-text font-medium" colSpan={2}>
+              <td className="border text-center border-gray-500 p-2 text-[15px] font-medium" colSpan={2}>
                 {displayWords}
               </td>
-              <td className="border border-gray-500 p-1 text-center khmer-text font-medium" colSpan={2}>
+              <td className="border border-gray-500 p-1 text-center text-[15px] font-medium" colSpan={2}>
                 តម្លៃរាយសរុប Grand Total
               </td>
-              <td className="border border-gray-500 p-1 text-right khmer-text font-medium">
+              <td className="border border-gray-500 p-1 text-right text-[15px] font-medium">
                 <div className="w-100 h-100">
                   <span></span>
                   <span>$ {formatGrandTotal(displayAmount)}</span>
@@ -304,7 +312,7 @@ const PrintInvoice = React.forwardRef((props, ref) => {
             </tr>
             <tr>
               <td
-                className="border-0 border-gray-500 p-1 text-center khmer-text font-medium"
+                className="border-0 border-gray-500 p-1 text-center text-[15px] font-medium"
                 colSpan={5}
               >
                 ទំនិញត្រូវបានទទួលនៅក្នុងលក្ខខណ្ឌល្អ /{" "}
@@ -313,30 +321,30 @@ const PrintInvoice = React.forwardRef((props, ref) => {
             </tr>
             <tr>
               <td
-                className="text-center khmer-text font-medium mb-10 pb-0"
+                className="text-center text-[15px] font-medium mb-10 pb-0"
                 colSpan={5}
               >
-                <div className="grid grid-cols-2 text-center khmer-text font-medium gap-4">
+                <div className="grid grid-cols-2 text-center text-[15px] font-medium gap-4">
                   <div className="mt-2 mb-10">
-                    <p className="font-bold mb-2 khmer-text font-medium">អតិថិជន</p>
-                    <p className="khmer-text font-medium">Customer:</p>
-                    <p className="mt-28 khmer-text font-medium">....................</p>
-                    <p className="mt-2 khmer-text font-medium">ហត្ថលេខា</p>
-                    <p className="mt-2 khmer-text font-medium">ការបរិច្ឆទ Date:</p>
+                    <p className="font-bold mb-2 text-[15px] font-medium">អតិថិជន</p>
+                    <p className="text-[15px] font-medium">Customer:</p>
+                    <p className="mt-28 text-[15px] font-medium">....................</p>
+                    <p className="mt-2 text-[15px] font-medium">ហត្ថលេខា</p>
+                    <p className="mt-2 text-[15px] font-medium">កាលបរិច្ឆេទ Date:</p>
 
                     {/* Add space here */}
                     <div className="mt-8"></div>
 
                     <p className="mt-2 text-md"> ....../....../.....</p>
                   </div>
-                  <div className="text-center mt-2 mb-10 khmer-text font-medium px-32">
-                    <p className="font-bold mb-2 khmer-text font-medium">គណនេយ្យករ</p>
-                    <p className="khmer-text font-medium">Accountant:</p>
-                    <p className="mt-28 khmer-text font-medium">....................</p>
-                    <p className="mt-2 khmer-text font-medium">ហត្ថលេខា</p>
-                    <p className="mt-2 khmer-text font-medium">ការបរិច្ឆទ Date:</p>
+                  <div className="text-center mt-2 mb-10 text-[15px] font-medium px-32">
+                    <p className="font-bold mb-2 text-[15px] font-medium">គណនេយ្យករ</p>
+                    <p className="text-[15px] font-medium">Accountant:</p>
+                    <p className="mt-28 text-[15px] font-medium">....................</p>
+                    <p className="mt-2 text-[15px] font-medium">ហត្ថលេខា</p>
+                    <p className="mt-2 text-[15px] font-medium">កាលបរិច្ឆេទ Date:</p>
                     <div className="mt-8"></div>
-                    <p className="khmer-text font-medium mt-2">
+                    <p className="text-[15px] font-medium mt-2">
                       {formatDateClient(objSummary.order_date)}
                     </p>
                   </div>

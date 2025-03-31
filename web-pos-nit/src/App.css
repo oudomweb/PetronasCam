@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Battambang&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Fasthand&family=Freehand&family=Moul&display=swap');
 .pos-row {
   font-family: "Battambang", sans-serif;
   font-size: 10px !important;
@@ -41,8 +41,9 @@ td {
   padding: 2px;
 }
 .khmer-text {
-  font-family: 'Khmer OS Battambang', 'Khmer OS Muol', 'Khmer', sans-serif;
-  font-size: 15px;
+  font-family: "Freehand", cursive;
+  font-weight: 400;
+  font-size: 12 px;
   font-weight: bold;
   color: #000; 
 }

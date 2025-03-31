@@ -269,10 +269,6 @@ function PosPage() {
       return;
     }
 
-    if (!objSummary.payment_method) {
-      message.error("Please select a payment method!");
-      return;
-    }
 
     if (!objSummary.user_id) {
       message.error("Please select a location/branch!");
@@ -560,6 +556,7 @@ function PosPage() {
             </Space> */}
           </div>
           <Table
+            scroll={{ x: 'max-content' }}
             dataSource={filteredProducts}
             columns={columns}
             loading={state.loading}
@@ -621,28 +618,7 @@ function PosPage() {
                 />
 
               </Col>
-
               <Col span={12}>
-                <Select
-                  allowClear
-                  style={{ width: "100%" }}
-                  placeholder="Select Payment"
-                  options={[
-                    { label: "Cash", value: "Cash" },
-                    { label: "Wing", value: "Wing" },
-                    { label: "ABA", value: "ABA" },
-                    { label: "AC", value: "AC" },
-                  ]}
-                  value={objSummary.payment_method} // Controlled by state
-                  onSelect={(value) => {
-                    setObjSummary((p) => ({
-                      ...p,
-                      payment_method: value,
-                    }));
-                  }}
-                />
-              </Col>
-              <Col span={24}>
                 <Select
                   allowClear
                   style={{ width: "100%" }}
@@ -663,6 +639,28 @@ function PosPage() {
 
               </Col>
 
+              {/* <Col span={12}>
+                <Select
+                  allowClear
+                  style={{ width: "100%" }}
+                  placeholder="Select Payment"
+                  options={[
+                    { label: "Cash", value: "Cash" },
+                    { label: "Wing", value: "Wing" },
+                    { label: "ABA", value: "ABA" },
+                    { label: "AC", value: "AC" },
+                  ]}
+                  value={objSummary.payment_method} // Controlled by state
+                  onSelect={(value) => {
+                    setObjSummary((p) => ({
+                      ...p,
+                      payment_method: value,
+                    }));
+                  }}
+                />
+              </Col> */}
+
+
               <Col span={24}>
                 <Input.TextArea
                   placeholder="Remark"
@@ -675,7 +673,7 @@ function PosPage() {
             </Row>
 
             <Row gutter={[16, 16]} style={{ marginTop: 15 }}>
-              <Col span={12}>
+              {/* <Col span={12}>
                 <InputNumber
                   style={{ width: "100%" }}
                   placeholder="Amount to paid"
@@ -684,7 +682,7 @@ function PosPage() {
                     setObjSummary((p) => ({ ...p, total_paid: value }));
                   }}
                 />
-              </Col>
+              </Col> */}
               <Col span={12}>
 
                 <Button
