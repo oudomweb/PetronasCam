@@ -31,11 +31,13 @@ const {
   newBarcode,
   getuserProfile,
   updateuserProfile,
+  refreshToken,
 } = require("../controller/auth.controller");
 const { uploadFile } = require("../util/helper");
 
 module.exports = (app) => {
-  app.get("/api/auth/get-list",  validate_token("user.getlist"), getList);
+  app.get("/api/groups/get-list",  validate_token("user.getlist"), getList);
+    app.post('/api/refresh-token',refreshToken);
   app.post("/api/auth/register",  validate_token("user.create"),uploadFile.single("upload_image"), register);
   app.delete("/api/user", validate_token("user.remove"), remove);
   app.put("/api/auth/register", validate_token("user.update"), uploadFile.single("upload_image"),update);

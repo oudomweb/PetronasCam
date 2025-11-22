@@ -1,0 +1,30 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "selectLanguage": "选择语言",
+    "loading": "加载中...",
+    "error": "发生错误",
+    "success": "成功"
+  },
+  "navigation": {
+    "home": "首页",
+    "invoices": "发票",
+    "orders": "订单",
+    "products": "产品",
+    "reports": "报告",
+    "users": "用户"
+  },
+  "invoice": {
+    "title": "发票",
+    "create": "创建发票",
+    "list": "发票列表",
+    "detail": "发票详情",
+    "print": "打印发票"
+  },
+  "order": {
+    "title": "订单",
+    "create": "创建订单",
+    "list": "订单列表",
+    "detail": "订单详情"
+  }
+}

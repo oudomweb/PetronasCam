@@ -1,143 +1,741 @@
+/* Improved Header Styles */
+
+/* Simplified Fuel Wave Effect */
+.admin-header::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    rgba(255,215,0,0.8) 0%,
+    rgba(0,163,224,0.8) 100%);
+}
+
+/* Company Title */
+.admin-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding-right: 30px;
+}
+
+.admin-title::after {
+  content: "⛽";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+}
+
+/* Branch Info */
+.khmer-branch {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.9);
+  display: inline-block;
+  margin-right: 1.5rem;
+  position: relative;
+  padding-left: 1.2rem;
+  font-family: 'Khmer OS', 'Hanuman', sans-serif;
+}
+
+.khmer-branch::before {
+  content: "📍";
+  position: absolute;
+  left: 0;
+  opacity: 0.8;
+}
+
+/* User Profile Section - Fixed Hover Issues */
+/* Improved User Profile Select Menu */
+.user-profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+.user-profile-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.user-profile-select:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.profile-img {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+.dropdown-item {
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:hover {
+  background: #f0f7fc;
+}
+
+
+
+/* Improved Header Styles */
 .admin-header {
-  height: 80px;
+  background: linear-gradient(135deg, #003366 0%, #0063A6 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  position: relative;
+  overflow: visible; /* Changed from hidden to visible */
+  box-shadow: 0 2px 10px rgba(0, 50, 100, 0.2);
+  z-index: 100;
   display: flex;
   justify-content: space-between;
-  padding: 0 20px; 
   align-items: center;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.25); 
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  position: relative; 
-  overflow: hidden;
-  background: linear-gradient(#2596be,rgba(0,169,160,255));
-  padding: 50px;
 }
-.admin-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+
+/* User Profile Dropdown Container */
+.user-profile-container {
+  position: relative;
+  display: inline-block;
+  z-index: 110; /* Higher than header z-index */
+}
+
+/* Profile Select Button */
+.user-profile-select {
   background: rgba(255, 255, 255, 0.1);
-  pointer-events: none;
-}
-.admin-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: 1px; 
-}
-.admin-header nav {
-  display: flex;
-  gap: 20px; 
-}
-.admin-header nav a {
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 8px 12px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  border: none;
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
-.admin-header nav a:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+
+.user-profile-select:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
-.admin-header nav a:active {
-  transform: translateY(0); 
+
+/* Dropdown Menu */
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  min-width: 180px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 120; /* Highest z-index */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
 }
+
+.user-profile-container:hover .user-dropdown,
+.user-profile-container:focus-within .user-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  padding: 0.6rem 1rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.dropdown-item:hover {
+  background: #f0f7fc;
+  color: #0063A6;
+}
+
+/* Profile Image */
+.profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+/* Chevron Icon */
+.chevron-icon {
+  transition: transform 0.2s ease;
+  margin-left: 0.5rem;
+}
+
+.user-profile-container:hover .chevron-icon {
+  transform: rotate(180deg);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .admin-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .khmer-branch {
+    font-size: 0.8rem;
+    margin-right: 1rem;
+  }
+  
+  .user-profile-select {
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .user-dropdown {
+    min-width: 160px;
+  }
+}
+
+/* Animation for dropdown */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-5px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-.admin-header {
-  animation: fadeIn 0.5s ease-out;
+
+.user-dropdown {
+  animation: fadeIn 0.2s ease-out;
 }
-.admin-body {
-  padding: 16px;
-  height: calc(100vh - 110px);
-  overflow-y: auto; 
-  background: linear-gradient(135deg, #76bfd1, #5e7397);
-  border-radius: 10px;
-  box-shadow: inset 0px 4px 10px rgba(0, 0, 0, 0.1); 
-}
-.admin-body::-webkit-scrollbar {
-  width: 8px;
-}
-.admin-body::-webkit-scrollbar-track {
-  background: #69948e;
-  border-radius: 10px;
-}
-.admin-body::-webkit-scrollbar-thumb {
-  background: #5c6bc0; 
-  border-radius: 10px;
-}
-.admin-body::-webkit-scrollbar-thumb:hover {
-  background: #3949ab;
-}
-.admin-header-g1 {
-  display: flex;
-}
-.admin-header-g2 {
+
+
+/* Profile display inside select */
+.profile-display {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
-.txt-brand-name {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ffffff; 
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); 
-}
-.txt-username {
-  font-size: 16px;
-  font-weight: bold;
-  color: #ffffff; 
-}
-.admin-logo {
-  width: 150px;
-  margin-left: -20px;
-  margin-right: 1px;
-}
-.img-user {
-  width: 60px;
-  margin-left: 10px;
+
+.profile-img {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.3s; 
+  object-fit: cover;
+  border: 1px solid rgba(255,215,0,0.5);
 }
-.img-user:hover {
-  transform: scale(1.1);
-}
-.icon-notify,
-.icon-email {
-  font-size: 32px;
-  margin-right: 18px;
+
+/* Notification Icon */
+.notification-icon {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 50%;
   color: white;
+  transition: all 0.2s ease;
+  margin-right: 1rem;
   cursor: pointer;
-  transition: 0.3s;
 }
-.icon-notify:hover,
-.icon-email:hover {
-  color: #f1c40f;
+
+.notification-icon:hover {
+  background: rgba(255,255,255,0.1);
 }
-@keyframes slideIn {
+
+.notification-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  background: #FFD700;
+  border-radius: 50%;
+}
+
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .admin-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .khmer-branch {
+    font-size: 0.8rem;
+    margin-right: 1rem;
+  }
+  
+  .user-profile {
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+
+
+
+khmer-greeting {
+  font-family: 'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #ffe699;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateX(-10px);
   }
   to {
     opacity: 1;
+  }
+}
+
+/* បន្ថែមម៉ោបាល់រ៉េស្ប៉ន់ស៊ីវ */
+@media (max-width: 640px) {
+  .khmer-greeting {
+    font-size: 0.875rem;
+  }
+}
+
+
+
+
+
+
+
+
+/* Main Layout Styles with Dark Mode Support */
+.admin-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar Styles */
+.petronas-sidebar {
+  transition: all 0.3s ease;
+  border-right: 1px solid;
+}
+
+.admin-sidebar-header {
+  min-height: 80px;
+}
+
+.sidebar-toggle-button {
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle-button:hover {
+  transform: scale(1.1);
+}
+
+/* Menu Item Styles */
+.petronas-sidebar-menu-item,
+.petronas-sidebar-submenu-item {
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.petronas-sidebar-menu-item:hover,
+.petronas-sidebar-submenu-item:hover {
+  transform: translateX(2px);
+}
+
+.petronas-sidebar-menu-item-active,
+.petronas-sidebar-submenu-item-active {
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode specific menu styles */
+.dark .petronas-sidebar-menu-item-active,
+.dark .petronas-sidebar-submenu-item-active {
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+/* Version Tag */
+.petronas-tag {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+/* Header Styles */
+.admin-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 80px;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode header */
+.dark .admin-header {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border-bottom: 1px solid #374151;
+}
+
+.admin-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.khmer-branch {
+  font-size: 0.875rem;
+  margin-right: 1rem;
+  opacity: 0.9;
+}
+
+/* Profile and Controls */
+.user-profile-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.user-profile-select:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.profile-img {
+  object-fit: cover;
+  transition: all 0.2s ease;
+}
+
+.profile-img:hover {
+  transform: scale(1.05);
+}
+
+/* Notification Icon */
+.notification-icon {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.notification-icon:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Main Content */
+.admin-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.admin-body {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+  transition: background-color 0.3s ease;
+}
+
+.dark .admin-body {
+  background: #111827;
+}
+
+.petronas-card {
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.dark .petronas-card {
+  border: 1px solid #374151;
+}
+
+/* Footer */
+.admin-footer {
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+/* Dropdown Styles */
+.dropdown-item {
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  transform: translateX(2px);
+}
+
+.dropdown-item:focus {
+  outline: none;
+}
+
+/* Control Buttons (Dark Mode & Fullscreen) */
+.control-button {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.125rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+}
+
+.control-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.control-button:active {
+  transform: translateY(0);
+}
+
+/* Dark mode toggle specific styles */
+.dark-mode-toggle {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+
+.dark .dark-mode-toggle {
+  background: linear-gradient(135deg, #1f2937, #374151);
+}
+
+/* Fullscreen toggle specific styles */
+.fullscreen-toggle {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.dark .fullscreen-toggle {
+  background: linear-gradient(135deg, #1f2937, #374151);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: auto;
+  }
+  
+  .admin-title {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  
+  .khmer-branch {
+    font-size: 0.75rem;
+    text-align: center;
+  }
+  
+  .user-profile-select {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .petronas-sidebar {
+    position: fixed;
+    z-index: 1000;
+    height: 100vh;
+  }
+  
+  .petronas-sidebar.w-64 {
+    transform: translateX(-100%);
+  }
+  
+  .petronas-sidebar.w-64.show {
     transform: translateX(0);
   }
 }
-.ant-menu-item,
-.ant-menu-submenu-title {
-  animation: slideIn 0.3s ease-out;
+
+@media (max-width: 480px) {
+  .admin-body {
+    padding: 1rem;
+  }
+  
+  .petronas-card {
+    padding: 1rem;
+  }
+  
+  .control-button {
+    min-width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Scrollbar Styles */
+.admin-body::-webkit-scrollbar,
+.petronas-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-body::-webkit-scrollbar-track,
+.petronas-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-body::-webkit-scrollbar-thumb,
+.petronas-sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dark .admin-body::-webkit-scrollbar-thumb,
+.dark .petronas-sidebar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.admin-body::-webkit-scrollbar-thumb:hover,
+.petronas-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark .admin-body::-webkit-scrollbar-thumb:hover,
+.dark .petronas-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Focus states for accessibility */
+.sidebar-toggle-button:focus,
+.control-button:focus,
+.user-profile-select:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.dark .sidebar-toggle-button:focus,
+.dark .control-button:focus,
+.dark .user-profile-select:focus {
+  outline-color: #60a5fa;
+}
+
+/* Animation for menu items */
+.petronas-sidebar-menu-item,
+.petronas-sidebar-submenu-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.petronas-sidebar-menu-item::before,
+.petronas-sidebar-submenu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.petronas-sidebar-menu-item:hover::before,
+.petronas-sidebar-submenu-item:hover::before {
+  left: 100%;
+}
+
+/* Dark mode adjustments for the shine effect */
+.dark .petronas-sidebar-menu-item::before,
+.dark .petronas-sidebar-submenu-item::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+}
+
+/* Loading and transition states */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }

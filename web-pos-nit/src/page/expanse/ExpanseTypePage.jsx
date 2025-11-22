@@ -9,7 +9,7 @@ import {
   Space,
   Table,
 } from "antd";
-import { request } from "../../util/helper";
+import { isPermission, request } from "../../util/helper";
 import { MdDelete, MdEdit } from "react-icons/md";
 import MainPage from "../../component/layout/MainPage";
 
@@ -33,7 +33,7 @@ function ExpanseTypePage() {
       txtSearch: state.txtSearch,
     };
     // Updated endpoint to match backend
-    const res = await request("expanse_type", "get", param);
+    const res = await request("expense_type", "get", param);
     setLoading(false);
     if (res && res.success) {
       // Updated to use 'data' property instead of 'list'
@@ -100,10 +100,10 @@ function ExpanseTypePage() {
 
     // Updated endpoint to match backend
     const method = formRef.getFieldValue("id") ? "put" : "post";
-    const endpoint = formRef.getFieldValue("id") 
-      ? `expense_type/${formRef.getFieldValue("id")}` 
+    const endpoint = formRef.getFieldValue("id")
+      ? `expense_type/${formRef.getFieldValue("id")}`
       : "expense_type";
-    
+
     const res = await request(endpoint, method, data);
 
     if (res && res.success) {
@@ -195,17 +195,24 @@ function ExpanseTypePage() {
             align: "center",
             render: (_, record) => (
               <Space>
-                <Button
-                  type="primary"
-                  icon={<MdEdit />}
-                  onClick={() => onClickEdit(record)}
-                />
-                <Button
-                  type="primary"
-                  danger
-                  icon={<MdDelete />}
-                  onClick={() => onClickDelete(record)}
-                />
+
+                {isPermission("customer.getone") && (
+                  <Button
+                    type="primary"
+                    icon={<MdEdit />}
+                    onClick={() => onClickEdit(record)}
+                  />
+
+                )}
+                {isPermission("customer.getone") && (
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<MdDelete />}
+                    onClick={() => onClickDelete(record)}
+                  />
+
+                )}
               </Space>
             ),
           },

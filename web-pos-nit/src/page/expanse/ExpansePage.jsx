@@ -11,7 +11,7 @@ import {
     Table,
     DatePicker,
 } from "antd";
-import { request } from "../../util/helper";
+import { isPermission, request } from "../../util/helper";
 import { MdDelete, MdEdit, MdOutlineCreateNewFolder } from "react-icons/md";
 import MainPage from "../../component/layout/MainPage";
 import dayjs from "dayjs";
@@ -149,74 +149,74 @@ function ExpansePage() {
                 footer={null}
                 onCancel={onCloseModal}
             ><Form layout="vertical" onFinish={onFinish} form={formRef}>
-            {/* Hidden ID Field */}
-            <Form.Item name="id" hidden>
-                <Input />
-            </Form.Item>
-        
-            {/* Expense Type */}
-            <Form.Item
-                name="expense_type_id"
-                label={<div className="khmer-text">ប្រភេទនៃការចំណាយ</div>}
-                rules={[{ required: true, message: "Expense Type is required" }]}
-            >
-                <Select options={config.expense_type} placeholder="ជ្រើសរើសប្រភេទចំណាយ" />
-            </Form.Item>
-        
-            {/* Reference Number */}
-            <Form.Item
-                name="ref_no"
-                label={<div className="khmer-text">លេខយោង</div>}
-                rules={[{ required: true, message: "Reference Number is required" }]}
-            >
-                <Input placeholder="បញ្ចូលលេខយោង" />
-            </Form.Item>
-        
-            {/* Name */}
-            <Form.Item
-                name="name"
-                label={<div className="khmer-text">ឈ្មោះ</div>}
-                rules={[{ required: true, message: "Name is required" }]}
-            >
-                <Input placeholder="បញ្ចូលឈ្មោះចំណាយ" />
-            </Form.Item>
-        
-            {/* Amount */}
-            <Form.Item
-                name="amount"
-                label={<div className="khmer-text">ចំនួនទឹកប្រាក់</div>}
-                rules={[{ required: true, message: "Amount is required" }]}
-            >
-                <InputNumber style={{ width: "100%" }} placeholder="បញ្ចូលចំនួន" min={0} />
-            </Form.Item>
-        
-            {/* Remark */}
-            <Form.Item name="remark" label={<div className="khmer-text">ផ្សេងៗ</div>}>
-                <Input.TextArea placeholder="បញ្ចូលព័ត៌មានបន្ថែម" />
-            </Form.Item>
-        
-            {/* Expense Date */}
-            <Form.Item
-                name="expense_date"
-                label={<div className="khmer-text">កាលបរិច្ឆេទចំណាយ</div>}
-                rules={[{ required: true, message: "Expense Date is required" }]}
-            >
-                <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" placeholder="ជ្រើសរើសកាលបរិច្ឆេទ" />
-            </Form.Item>
-        
-            {/* Buttons */}
-            <Space>
-                <Button onClick={onCloseModal}>
-                    <div className="khmer-text">បោះបង់</div>
-                </Button>
-                <Button type="primary" htmlType="submit">
-                    <div className="khmer-text">
-                        {formRef.getFieldValue("id") ? "កែសម្រួល" : "រក្សាទុក"}
-                    </div>
-                </Button>
-            </Space>
-        </Form>
-        
+                    {/* Hidden ID Field */}
+                    <Form.Item name="id" hidden>
+                        <Input />
+                    </Form.Item>
+
+                    {/* Expense Type */}
+                    <Form.Item
+                        name="expense_type_id"
+                        label={<div className="khmer-text">ប្រភេទនៃការចំណាយ</div>}
+                        rules={[{ required: true, message: "Expense Type is required" }]}
+                    >
+                        <Select options={config.expense_type} placeholder="ជ្រើសរើសប្រភេទចំណាយ" />
+                    </Form.Item>
+
+                    {/* Reference Number */}
+                    <Form.Item
+                        name="ref_no"
+                        label={<div className="khmer-text">លេខយោង</div>}
+                        rules={[{ required: true, message: "Reference Number is required" }]}
+                    >
+                        <Input placeholder="បញ្ចូលលេខយោង" />
+                    </Form.Item>
+
+                    {/* Name */}
+                    <Form.Item
+                        name="name"
+                        label={<div className="khmer-text">ឈ្មោះ</div>}
+                        rules={[{ required: true, message: "Name is required" }]}
+                    >
+                        <Input placeholder="បញ្ចូលឈ្មោះចំណាយ" />
+                    </Form.Item>
+
+                    {/* Amount */}
+                    <Form.Item
+                        name="amount"
+                        label={<div className="khmer-text">ចំនួនទឹកប្រាក់</div>}
+                        rules={[{ required: true, message: "Amount is required" }]}
+                    >
+                        <InputNumber style={{ width: "100%" }} placeholder="បញ្ចូលចំនួន" min={0} />
+                    </Form.Item>
+
+                    {/* Remark */}
+                    <Form.Item name="remark" label={<div className="khmer-text">ផ្សេងៗ</div>}>
+                        <Input.TextArea placeholder="បញ្ចូលព័ត៌មានបន្ថែម" />
+                    </Form.Item>
+
+                    {/* Expense Date */}
+                    <Form.Item
+                        name="expense_date"
+                        label={<div className="khmer-text">កាលបរិច្ឆេទចំណាយ</div>}
+                        rules={[{ required: true, message: "Expense Date is required" }]}
+                    >
+                        <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" placeholder="ជ្រើសរើសកាលបរិច្ឆេទ" />
+                    </Form.Item>
+
+                    {/* Buttons */}
+                    <Space>
+                        <Button onClick={onCloseModal}>
+                            <div className="khmer-text">បោះបង់</div>
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                            <div className="khmer-text">
+                                {formRef.getFieldValue("id") ? "កែសម្រួល" : "រក្សាទុក"}
+                            </div>
+                        </Button>
+                    </Space>
+                </Form>
+
             </Modal>
             <Table
                 rowClassName={() => "pos-row"}
@@ -242,7 +242,7 @@ function ExpansePage() {
                         ),
                         dataIndex: "expense_type_name", // Corrected field name
                     },
-                    
+
                     {
                         key: "ref_no",
                         title: (
@@ -295,7 +295,7 @@ function ExpansePage() {
                                 <div className="english-text">Expense Date</div>
                             </div>
                         ),
-                        dataIndex: "expense_date",
+                        dataIndex: "create_at",
                         render: (value) => dayjs(value).format("YYYY-MM-DD h:mm A"), // Format date
                     },
                     {
@@ -309,17 +309,21 @@ function ExpansePage() {
                         align: "center",
                         render: (_, record) => (
                             <Space>
+                                {isPermission("customer.getone")&&(
                                 <Button
                                     type="primary"
                                     icon={<MdEdit />}
                                     onClick={() => onClickEdit(record)}
                                 />
+                                )}
+                                {isPermission("customer.getone")&&(
                                 <Button
                                     type="primary"
                                     danger
                                     icon={<MdDelete />}
                                     onClick={() => onClickDelete(record)}
                                 />
+                                )}
                             </Space>
                         ),
                     },
@@ -329,3 +333,5 @@ function ExpansePage() {
     );
 }
 export default ExpansePage;
+
+

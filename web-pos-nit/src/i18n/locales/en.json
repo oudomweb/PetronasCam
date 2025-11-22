@@ -1,0 +1,30 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "selectLanguage": "Select Language",
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success"
+  },
+  "navigation": {
+    "home": "Home",
+    "invoices": "Invoices",
+    "orders": "Orders",
+    "products": "Products",
+    "reports": "Reports",
+    "users": "Users"
+  },
+  "invoice": {
+    "title": "Invoice",
+    "create": "Create Invoice",
+    "list": "Invoice List",
+    "detail": "Invoice Details",
+    "print": "Print Invoice"
+  },
+  "order": {
+    "title": "Order",
+    "create": "Create Order",
+    "list": "Order List",
+    "detail": "Order Details"
+  }
+}

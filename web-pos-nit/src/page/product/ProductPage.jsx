@@ -4,7 +4,7 @@ import {
   Col,
   Divider,
   Form,
-  Image,
+  DatePicker,
   Input,
   InputNumber,
   message,
@@ -14,46 +14,56 @@ import {
   Space,
   Table,
   Tag,
-  Upload,
+  Card,
+  Tooltip,
+  Typography
 } from "antd";
-import { formatDateClient, isPermission, request } from "../../util/helper";
+import { formatDateClient, formatPrice, isPermission, request } from "../../util/helper";
 import { MdAdd, MdDelete, MdEdit, MdOutlineCreateNewFolder } from "react-icons/md";
+import { AiOutlinePlusCircle } from "react-icons/ai";
+import { BsTrash, BsSearch, BsCalendar3, BsBoxSeam } from "react-icons/bs";
 import MainPage from "../../component/layout/MainPage";
 import { configStore } from "../../store/configStore";
 import * as XLSX from 'xlsx/xlsx.mjs';
 import { getProfile } from "../../store/profile.store";
-import { BsSearch } from "react-icons/bs";
+import { FaFileExport, FaMoneyBillWave, FaWarehouse } from "react-icons/fa";
+import { RiDashboardLine } from "react-icons/ri";
+import moment from 'moment';
+import dayjs from 'dayjs';
+
+import "./product.css"
+const { Title, Text } = Typography;
+
 function ProductPage() {
   const { config } = configStore();
   const [form] = Form.useForm();
   const [list, setList] = useState([]);
+  const [viewMode, setViewMode] = useState('my');
+
+  const [customers, setCustomers] = useState([]);
+  const [datePickerOpen, setDatePickerOpen] = useState({
+    create_at: false,
+    receive_date: false
+  });
   const [state, setState] = useState({
     list: [],
     total: 0,
     loading: false,
     visibleModal: false,
     is_list_all: false,
+    totals: {},
   });
 
+  const [productItems, setProductItems] = useState([
+    { key: 0, name: undefined, category_id: undefined, qty: undefined, unit_price: undefined }
+  ]);
 
-  const calculateTotalPrice = (item) => {
-    const { qty = 0, unit_price = 0, discount = 0, actual_price = 1 } = item;
-    
-    // Handle division by zero cases
-    if (actual_price <= 0) return 0;
-    
-    // Calculate base price
-    const basePrice = qty * unit_price;
-    
-    // Apply discount if exists
-    const discountedPrice = discount > 0 
-      ? basePrice * (1 - discount / 100)
-      : basePrice;
-    
-    // Return final price rounded to 2 decimal places
-    return parseFloat((discountedPrice / actual_price).toFixed(2));
+  // ✅ Track if we're in edit mode
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const getTotalPrice = (item) => {
+    return parseFloat(item.total_price || 0);
   };
-
 
   const formatCurrencyalltotal = (value) => {
     return new Intl.NumberFormat('en-US', {
@@ -63,856 +73,1130 @@ function ProductPage() {
       maximumFractionDigits: 2
     }).format(value || 0);
   };
-  const ExportToExcel = () => {
-    if (list.length === 0) {
-      message.warning("No data available to export.");
-      return;
-    }
-    const data = list.map((item) => ({
-      ...item,
-      create_at: formatDateClient(item.create_at),
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Product");
-    setTimeout(() => {
-      XLSX.writeFile(wb, "Product_Data.xlsx");
-    }, 2000);
-  };
+
   const refPage = React.useRef(1);
   const [filter, setFilter] = useState({
     txt_search: "",
     category_id: "",
     brand: "",
   });
+
   useEffect(() => {
     getList();
+    fetchCustomers();
   }, []);
-  // const getList = async () => {
-  //   var param = {
-  //     ...filter,
-  //     page: refPage.current,
-  //   };
-  //   setState((pre) => ({ ...pre, loading: true }));
-  //   const { id } = getProfile();
-  //   if (!id) {
-  //     return
-  //   }
-  //   const res = await request(`product/${id}`, "get", param);
-  //   if (res && !res.error) {
-  //     setState((pre) => ({
-  //       ...pre,
-  //       list: res.list,
-  //       total: refPage.current == 1 ? res.total : pre.total,
-  //       loading: false,
-  //     }));
-  //   }
-  // };
 
   const getList = async () => {
     var param = {
       ...filter,
-      page: 1, // Force first page
-      is_list_all: 1, // Ensure fetching all
+      page: 1,
+      is_list_all: 1,
     };
-    
+
     setState((pre) => ({ ...pre, loading: true }));
     const { id } = getProfile();
     if (!id) {
       return;
     }
-    const res = await request(`product/${id}`, "get", param);
+    const res = await request(`product/my-group`, "get", param);
     if (res && !res.error) {
-      // Calculate totals for each product category
       const totals = res.list.reduce((acc, item) => {
-        if (!acc[item.category_name]) {
-          acc[item.category_name] = 0;
+        const categoryName = item.category_name || 'Uncategorized';
+
+        if (!acc[categoryName]) {
+          acc[categoryName] = {
+            quantity: 0,
+            totalValue: 0
+          };
         }
-        acc[item.category_name] += item.qty;
+
+        acc[categoryName].quantity += Number(item.qty) || 0;
+        acc[categoryName].totalValue += Number(item.total_price) || 0;
+
         return acc;
       }, {});
 
       setState((pre) => ({
         ...pre,
         list: res.list,
-        total: refPage.current == 1 ? res.total : pre.total,
+        total: refPage.current === 1 ? res.total : pre.total,
         loading: false,
-        totals, // Store totals in state
+        totals,
       }));
+
+      setList(res.list);
     }
   };
+
   const onCloseModal = () => {
     setState((p) => ({
       ...p,
       visibleModal: false,
     }));
     form.resetFields();
+    setProductItems([{ key: 0, name: undefined, category_id: undefined, qty: undefined, unit_price: undefined }]);
+    setIsEditMode(false); // ✅ Reset edit mode
   };
-  // const onFinish = async (items) => {
-  //   const { id } = getProfile();
-  //   if (!id) {
-  //     message.error("User ID is missing!");
-  //     return;
-  //   }
-  //   var data = {
-  //     id: form.getFieldValue("id"),
-  //     user_id: id,
-  //     name: items.name,
-  //     category_id: items.category_id,
-  //     barcode: items.barcode,
-  //     brand: items.brand,
-  //     company_name: items.company_name,
-  //     qty: items.qty,
-  //     actual_price: items.actual_price,
 
-  //     unit: items.unit,
-  //     unit_price: items.unit_price,
-  //     discount: items.discount,
-  //     description: items.description,
-  //     status: items.status,
-  //   };
-  //   var method = form.getFieldValue("id") ? "put" : "post";
-  //   const res = await request("product", method, data);
-  //   if (res && !res.error) {
-  //     message.success(res.message);
-  //     getList();
-  //     onCloseModal();
-  //   }
-  // };
+  const addProductItem = () => {
+    const newKey = productItems.length > 0 ? Math.max(...productItems.map(item => item.key)) + 1 : 0;
+    setProductItems([...productItems, { key: newKey, name: undefined, category_id: undefined, qty: undefined, unit_price: undefined }]);
+  };
 
-  const onFinish = async (items) => {
+  const removeProductItem = (key) => {
+    if (productItems.length > 1) {
+      setProductItems(productItems.filter(item => item.key !== key));
+    } else {
+      message.warning("ត្រូវតែមានយ៉ាងហោចណាស់មួយផលិតផល (At least one product is required)");
+    }
+  };
+
+  // ✅ NEW: Batch save function with single Telegram notification
+  const handleSaveAllProducts = async (formValues) => {
+    console.log('Form Values:', formValues);
+
     const { id } = getProfile();
     if (!id) {
-      message.error("User ID is missing!");
+      message.error("User ID is missing! / មិនមានលេខសម្គាល់អ្នកប្រើប្រាស់!");
       return;
     }
-  
-    // បង្កើតទិន្នន័យសម្រាប់ការកម្មង
-    var data = {
-      id: form.getFieldValue("id"),
-      user_id: id,
-      name: items.name,
-      category_id: items.category_id,
-      barcode: items.barcode,
-      brand: items.brand,
-      company_name: items.company_name,
-      qty: items.qty, // ចំនួនដែលត្រូវដក
-      actual_price: items.actual_price,
-      unit: items.unit,
-      unit_price: items.unit_price,
-      discount: items.discount,
-      description: items.description,
-      status: items.status,
-    };
-  
-    // បញ្ជូនទិន្នន័យទៅ API
-    var method = form.getFieldValue("id") ? "put" : "post";
-    const res = await request("product", method, data);
-  
-    if (res && !res.error) {
-      message.success(res.message);
-  
-      // ដកតម្លៃ qty ពីសរុបរួម (totals)
-      const updatedTotals = { ...state.totals };
-      if (updatedTotals[items.category_name]) {
-        updatedTotals[items.category_name] -= items.qty;
-  
-        // ប្រសិនបើតម្លៃសរុបរួមធ្លាក់ខ្លួនតិចជាង 0 កំណត់វាជា 0
-        if (updatedTotals[items.category_name] < 0) {
-          updatedTotals[items.category_name] = 0;
-        }
+
+    // ✅ Validate customer selection
+    if (!formValues.customer_id) {
+      message.error("សូមជ្រើសរើសអតិថិជនសិន / Please select a customer!");
+      return;
+    }
+
+    // ✅ Extract products from form
+    let products = [];
+
+    if (formValues.products) {
+      if (Array.isArray(formValues.products)) {
+        products = formValues.products.filter(product => product && typeof product === 'object');
+      } else if (typeof formValues.products === 'object') {
+        products = Object.values(formValues.products).filter(product => product && typeof product === 'object');
       }
-  
-      // ធ្វើបច្ចុប្បន្នភាព state ជាមួយនឹងតម្លៃសរុបរួមថ្មី
-      setState((pre) => ({
-        ...pre,
-        totals: updatedTotals,
-      }));
-  
-      // ទាញយកបញ្ជីថ្មី និងបិទ modal
-      getList();
-      onCloseModal();
+    }
+
+    // ✅ Validate products
+    if (products.length === 0) {
+      message.error("សូមបន្ថែមផលិតផលយ៉ាងហោចណាស់១ / At least one product is required!");
+      return;
+    }
+
+    // ✅ Enhanced validation
+    const validationErrors = [];
+    products.forEach((product, index) => {
+      if (!product || typeof product !== 'object') {
+        validationErrors.push(`Product ${index + 1}: Invalid product data`);
+        return;
+      }
+
+      if (!product.name) validationErrors.push(`Product ${index + 1}: Name is required`);
+      if (!product.category_id) validationErrors.push(`Product ${index + 1}: Category is required`);
+
+      const qty = Number(product.qty);
+      if (isNaN(qty) || qty <= 0) {
+        validationErrors.push(`Product ${index + 1}: Valid quantity required`);
+      }
+
+      const unitPrice = Number(product.unit_price);
+      if (isNaN(unitPrice) || unitPrice <= 0) {
+        validationErrors.push(`Product ${index + 1}: Valid unit price required`);
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      console.error('Validation Errors:', validationErrors);
+      message.error(`Validation failed:\n${validationErrors.join('\n')}`);
+      return;
+    }
+
+    setState(prev => ({ ...prev, loading: true }));
+
+    try {
+      // ✅ Prepare products array
+      const productsData = products.map(product => {
+        const qty = Number(product.qty) || 1;
+        const unitPrice = Number(product.unit_price) || 0.01;
+
+        // Get actual_price from category
+        let actualPrice = Number(product.actual_price);
+        if (!actualPrice || isNaN(actualPrice)) {
+          const categoryInfo = config.category.find(c => c.value === product.category_id);
+          actualPrice = Number(categoryInfo?.actual_price) || 1190;
+        }
+
+        return {
+          user_id: id,
+          name: product.name,
+          category_id: product.category_id,
+          company_name: formValues.company_name || '',
+          description: formValues.description || '', // Card number
+          qty: qty,
+          unit: formValues.unit || 'L',
+          unit_price: unitPrice,
+          discount: Number(formValues.discount) || 0,
+          actual_price: actualPrice,
+          status: formValues.status || 1,
+          create_at: formValues.create_at 
+            ? formValues.create_at.format('YYYY-MM-DD HH:mm:ss')
+            : new Date().toISOString().slice(0, 19).replace('T', ' '),
+          receive_date: formValues.receive_date 
+            ? formValues.receive_date.format('YYYY-MM-DD HH:mm:ss')
+            : new Date().toISOString().slice(0, 19).replace('T', ' ')
+        };
+      });
+
+      console.log('Sending products data:', productsData);
+
+      // ✅ Call new batch endpoint
+      const response = await request('product/createMultiple', 'post', {
+        customer_id: formValues.customer_id,
+        products: productsData
+      });
+
+      if (response && !response.error) {
+        const successCount = response.data.success.length;
+        const errorCount = response.data.errors.length;
+
+        message.success(
+          `បានរក្សាទុកផលិតផល ${successCount} ប្រភេទដោយជោគជ័យ! / Successfully saved ${successCount} product(s)!`
+        );
+
+        // Show errors if any
+        if (errorCount > 0) {
+          response.data.errors.forEach(err => {
+            message.error(`កំហុស: ${err.productName} - ${err.error}`);
+          });
+        }
+
+        // Refresh and close
+        getList();
+        onCloseModal();
+      } else {
+        message.error(response.message || 'មានបញ្ហាក្នុងការរក្សាទុក / Failed to save products');
+      }
+    } catch (error) {
+      console.error('Error saving products:', error);
+      message.error('មានបញ្ហាក្នុងការរក្សាទុកផលិតផល / Error occurred while saving products');
+    } finally {
+      setState(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // ✅ Modified onFinish to handle both single edit and batch create
+  const onFinish = async (formValues) => {
+    console.log('onFinish called with:', formValues);
+
+    // ✅ Check if we're in edit mode (single product update)
+    if (isEditMode && formValues.id) {
+      // Single product update logic
+      const { id: userId } = getProfile();
+      if (!userId) {
+        message.error("User ID is missing!");
+        return;
+      }
+
+      setState(prev => ({ ...prev, loading: true }));
+
+      try {
+        const updateData = {
+          user_id: userId,
+          name: formValues.products[0].name,
+          category_id: formValues.products[0].category_id,
+          company_name: formValues.company_name,
+          description: formValues.description,
+          qty: Number(formValues.products[0].qty),
+          unit: formValues.unit,
+          unit_price: Number(formValues.products[0].unit_price),
+          discount: Number(formValues.discount) || 0,
+          actual_price: Number(formValues.products[0].actual_price) || 1190,
+          status: formValues.status,
+          create_at: formValues.create_at?.format('YYYY-MM-DD HH:mm:ss'),
+          receive_date: formValues.receive_date?.format('YYYY-MM-DD HH:mm:ss'),
+          customer_id: formValues.customer_id
+        };
+
+        const response = await request(`product/${formValues.id}`, "put", updateData);
+
+        if (response && !response.error) {
+          message.success("បានកែប្រែផលិតផលដោយជោគជ័យ! / Product updated successfully!");
+          getList();
+          onCloseModal();
+        } else {
+          message.error(response?.message || "Failed to update product");
+        }
+      } catch (error) {
+        console.error('Error updating product:', error);
+        message.error("មានបញ្ហាក្នុងការកែប្រែផលិតផល / Error updating product");
+      } finally {
+        setState(prev => ({ ...prev, loading: false }));
+      }
+    } else {
+      // ✅ Batch create mode - use new function
+      await handleSaveAllProducts(formValues);
+    }
+  };
+
+  const handleProductChange = async (value, key, field) => {
+    console.log(`Changing ${field} for product ${key} to:`, value);
+
+    const updatedItems = productItems.map(item => {
+      if (item.key === key) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    });
+    setProductItems(updatedItems);
+
+    const fieldName = `products[${key}].${field}`;
+
+    if (field === 'category_id' && value) {
+      const categoryInfo = config.category.find(c => c.value === value);
+      const categoryBarcode = categoryInfo?.barcode || '';
+      const actualPrice = categoryInfo?.actual_price || 1190;
+
+      const updatedItemsWithBarcode = productItems.map(item => {
+        if (item.key === key) {
+          return {
+            ...item,
+            [field]: value,
+            barcode: categoryBarcode,
+            actual_price: actualPrice
+          };
+        }
+        return item;
+      });
+
+      setProductItems(updatedItemsWithBarcode);
+
+      form.setFieldsValue({
+        [fieldName]: value,
+        [`products[${key}].barcode`]: categoryBarcode,
+        [`products[${key}].actual_price`]: actualPrice
+      });
+    } else {
+      let processedValue = value;
+      if (field === 'qty' || field === 'unit_price') {
+        processedValue = Number(value);
+      }
+
+      form.setFieldsValue({
+        [fieldName]: processedValue
+      });
     }
   };
 
   const onBtnNew = async () => {
     const res = await request("new_barcode", "post");
     if (res && !res.error) {
-      form.setFieldValue("barcode", res.barcode);
+      form.setFieldsValue({
+        barcode: res.barcode,
+        create_at: moment(),
+        receive_date: moment(),
+      });
+
       setState((p) => ({
         ...p,
         visibleModal: true,
       }));
+
+      setProductItems([{ key: 0, name: undefined, category_id: undefined, qty: undefined, unit_price: undefined }]);
+      setIsEditMode(false); // ✅ Not in edit mode
     }
   };
+
   const onFilter = () => {
     getList();
   };
+
   const onClickEdit = (data, index) => {
+    setIsEditMode(true); // ✅ Set edit mode
+
     setState({
       ...state,
       visibleModal: true,
     });
+
     form.setFieldsValue({
       id: data.id,
-      name: data.name,
       user_id: data.user_id,
-      category_id: data.category_id,
-      brand: data.brand,
       company_name: data.company_name,
-      qty: data.qty,
       unit: data.unit,
-      unit_price: data.unit_price,
-      discount: data.discount,
       description: data.description,
       status: data.status,
+      create_at: data.create_at ? dayjs(data.create_at) : null,
+      receive_date: data.receive_date ? dayjs(data.receive_date) : null,
+      customer_id: data.customer_id,
+      products: [{
+        name: data.name,
+        category_id: data.category_id,
+        qty: data.qty,
+        unit_price: data.unit_price,
+        actual_price: data.actual_price || 1190,
+        barcode: data.barcode,
+      }]
     });
+
+    setProductItems([
+      {
+        key: 0,
+        name: data.name,
+        category_id: data.category_id,
+        qty: data.qty,
+        unit_price: data.unit_price,
+        actual_price: data.actual_price || 1190,
+        barcode: data.barcode,
+      },
+    ]);
   };
-  const onClickDelete = (item, index) => {
-    if (!item.id) {
-      message.error("Product ID is missing!");
-      return;
-    }
+
+  const onClickDelete = async (data, index) => {
     Modal.confirm({
-      title: "Remove Product",
-      content: "Are you sure you want to remove this product?",
-      onOk: async () => {
+      title: "Are you sure you want to delete this product?",
+      content: `Product: ${data.name} (${data.barcode})`,
+      okText: "Yes, Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      async onOk() {
         try {
-          const res = await request(`product/${item.id}`, "delete");
+          const res = await request(`product/${data.id}`, "delete");
           if (res && !res.error) {
-            message.success(res.message);
+            message.success("Product deleted successfully!");
             getList();
           } else {
-            message.error(res.message || "Failed to delete product!");
+            message.error(res?.message || "Failed to delete product.");
           }
-        } catch (error) {
-          message.error("An error occurred while deleting the product.");
+        } catch (err) {
+          console.error("Delete Error:", err);
+          message.error("Something went wrong while deleting.");
         }
       },
     });
   };
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
   };
-  
 
   const onValuesChange = (changedValues, allValues) => {
     if (changedValues.qty || changedValues.unit_price || changedValues.discount || changedValues.actual_price) {
       const { qty, unit_price, discount = 0, actual_price } = allValues;
 
       if (qty && unit_price && actual_price) {
-        // Calculate total price
         const totalPrice = (qty * unit_price) * (1 - discount / 100) / actual_price;
-
-        // Round the total price to the nearest whole number
         const roundedTotalPrice = Math.round(totalPrice);
-
-        // Update the form field with the rounded total price
         form.setFieldsValue({ price: roundedTotalPrice });
       }
     }
   };
-  const product = [
-    { label: "ប្រេងឥន្ធនៈ", value: "oil" },
-  ];
-  
-  const handleChange = (value) => {
-    console.log("Selected:", value);
+
+  const fetchCustomers = async () => {
+    const { id } = getProfile();
+    if (!id) return;
+
+    try {
+      const res = await request(`customer/my-group`, "get");
+      if (res && res.list) {
+        const customers = res.list.map(cust => ({
+          label: `${cust.name} (${cust.tel})`,
+          value: cust.id,
+          address: cust.address,
+          tel: cust.tel
+        }));
+        setCustomers(customers);
+      }
+    } catch (error) {
+      message.error("Error fetching customers!");
+    }
   };
+
   return (
     <MainPage loading={state.loading}>
-      <div className="pageHeader">
-        <Space>
-          <div className="khmer-text">ផលិតផល/{state.total}</div>
-          <Input.Search
-            onChange={(event) =>
-              setFilter((p) => ({ ...p, txt_search: event.target.value }))
-            }
-            allowClear
-            placeholder="Search"
-          />
-          <Select
-            allowClear
-            style={{ width: 130 }}
-            placeholder="Category"
-            options={config.category}
-            onChange={(id) => {
-              setFilter((pre) => ({ ...pre, category_id: id }));
-            }}
-          />
-          <Select
-            allowClear
-            style={{ width: 160 }}
-            placeholder="Brand"
-            options={config.brand}
-            onChange={(id) => {
-              setFilter((pre) => ({ ...pre, brand: id }));
-            }}
-          />
+      {/* Header Section */}
+      <Card className="product-header-card">
+        <Row align="middle" justify="space-between" gutter={16}>
+          <Col>
+            <div className="product-header-flex">
+              <div className="product-icon-container">
+                <BsBoxSeam size={24} className="product-icon-blue" />
+              </div>
+              <div>
+                <div className="product-title-khmer">ការគ្រប់គ្រងផលិតផល</div>
+                <div className="product-title-english">Product Management</div>
+                <div className="product-stats-container">
+                  <RiDashboardLine className="product-stats-icon" />
+                  <span className="product-stats-text">Total: {state.total} products</span>
+                </div>
+              </div>
+            </div>
+          </Col>
+          <Col>
+            <Space>
+              <Button
+                type="primary"
+                onClick={onBtnNew}
+                icon={<MdOutlineCreateNewFolder />}
+                className="product-add-btn"
+              >
+                Add Product
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
 
-          <Button onClick={onFilter} type="primary" icon={<BsSearch />}>
+      {/* Filter Section */}
+      <Card className="product-filter-card">
+        <Form layout="horizontal" className="product-filter-form">
+          <Form.Item className="product-search-item">
+            <Input.Search
+              onChange={(event) => setFilter((p) => ({ ...p, txt_search: event.target.value }))}
+              allowClear
+              placeholder="Search products..."
+              className="product-search-input"
+              size="large"
+            />
+          </Form.Item>
+          <Form.Item className="product-category-item">
+            <Select
+              allowClear
+              style={{ width: '100%' }}
+              placeholder="Select Category"
+              options={config.category}
+              onChange={(id) => setFilter((pre) => ({ ...pre, category_id: id }))}
+              size="large"
+            />
+          </Form.Item>
+          <Form.Item className="product-brand-item">
+            <Select
+              allowClear
+              style={{ width: '100%' }}
+              placeholder="Select Brand"
+              options={config.brand}
+              onChange={(id) => setFilter((pre) => ({ ...pre, brand: id }))}
+              size="large"
+            />
+          </Form.Item>
+          <Button
+            onClick={onFilter}
+            type="primary"
+            icon={<BsSearch />}
+            size="large"
+            className="product-filter-btn"
+          >
             Filter
           </Button>
-        </Space>
-        <Button type="primary" onClick={onBtnNew} icon={<MdOutlineCreateNewFolder />}>
-          NEW
-        </Button>
-      </div>
+        </Form>
+      </Card>
+
+      {/* Stats Cards */}
+      <Row style={{ marginBottom: 24, borderRadius: 12 }} gutter={[16, 16]}>
+        {Object.entries(state.totals || {}).map(([category, totals]) => {
+          const categoryColors = {
+            'ហ្កាស(LPG)': { bg: 'product-card-amber', text: 'product-text-amber', icon: <FaWarehouse className="product-icon-amber" /> },
+            'ប្រេងសាំងធម្មតា(EA)': { bg: 'product-card-cyan', text: 'product-text-cyan', icon: <FaMoneyBillWave className="product-icon-cyan" /> },
+            'ប្រេងម៉ាស៊ូត(Do)': { bg: 'product-card-green', text: 'product-text-green', icon: <FaWarehouse className="product-icon-green" /> },
+            'ប្រេងសាំងស៊ុបពែរ(Super)': { bg: 'product-card-blue', text: 'product-text-blue', icon: <FaMoneyBillWave className="product-icon-blue" /> },
+            'default': { bg: 'product-card-gray', text: 'product-text-gray', icon: <BsBoxSeam className="product-icon-gray" /> }
+          };
+
+          const colors = categoryColors[category] || categoryColors['default'];
+
+          return (
+            <Col key={category} xs={24} sm={12} md={8} lg={6}>
+              <Card className={`product-stat-card ${colors.bg}`}>
+                <div className="product-stat-header">
+                  <div className="product-stat-icon-container">
+                    <div className="product-stat-icon-wrapper">
+                      {colors.icon}
+                    </div>
+                    <div>
+                      <div className={`product-stat-title ${colors.text}`}>{category}</div>
+                      <div className="product-stat-subtitle">Category</div>
+                    </div>
+                  </div>
+                </div>
+                <Divider className="product-stat-divider" />
+                <div className="product-stat-metrics">
+                  <div>
+                    <div className="product-stat-label">Quantity</div>
+                    <div className="product-stat-value">{totals.quantity.toLocaleString()}L</div>
+                  </div>
+                  <div>
+                    <div className="product-stat-label">Total Value</div>
+                    <div className="product-stat-value-highlight">{formatCurrencyalltotal(totals.totalValue)}</div>
+                  </div>
+                </div>
+              </Card>
+            </Col>
+          );
+        })}
+      </Row>
+
+      {/* Product Table */}
+      <Card className="product-table-card">
+        <Table
+          className="product-table"
+          rowClassName={() => "product-table-row"}
+          dataSource={state.list}
+          pagination={false}
+          columns={[
+            {
+              key: "name",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">ឈ្មោះ</div>
+                  <div className="product-table-header-english">Name</div>
+                </div>
+              ),
+              dataIndex: "name",
+              render: (text) => {
+                const displayText = text === "oil" ? "ប្រេងឥន្ធនៈ" : text;
+                return (
+                  <div className="product-table-text" title={displayText || ""}>
+                    {displayText || "N/A"}
+                  </div>
+                );
+              },
+            },
+            {
+              key: "barcode",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">លេខបាកូដ</div>
+                  <div className="product-table-header-english">Barcode</div>
+                </div>
+              ),
+              dataIndex: "category_barcode",
+              render: (value) => <Tag color="blue" className="product-tag">{value}</Tag>,
+            },
+            {
+              key: "category_name",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">ប្រភេទ</div>
+                  <div className="product-table-header-english">Category</div>
+                </div>
+              ),
+              dataIndex: "category_name",
+              render: (text) => (
+                <div className="product-table-text" title={text || ""}>
+                  {text || "N/A"}
+                </div>
+              ),
+            },
+            {
+              key: "qty",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">បរិមាណ</div>
+                  <div className="product-table-header-english">Quantity</div>
+                </div>
+              ),
+              dataIndex: "qty",
+              render: (value) => (
+                <Tag color={value > 5000 ? "green" : "red"} className="product-tag">
+                  {value.toLocaleString()}
+                </Tag>
+              ),
+            },
+            {
+              key: "unit",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">ឯកតា</div>
+                  <div className="product-table-header-english">Unit</div>
+                </div>
+              ),
+              dataIndex: "unit",
+              render: (value) => <Tag color="green" className="product-tag">{value}</Tag>,
+            },
+            {
+              key: "unit_price",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">តម្លៃតោន</div>
+                  <div className="product-table-header-english">Unit Price</div>
+                </div>
+              ),
+              dataIndex: "unit_price",
+              render: (value) => (
+                <Tag color={value > 20 ? "green" : "volcano"} className="product-tag">
+                  {formatCurrency(value)}
+                </Tag>
+              ),
+            },
+            {
+              key: "total_price",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">តម្លៃសរុប</div>
+                  <div className="product-table-header-english">Total Price</div>
+                </div>
+              ),
+              dataIndex: "total_price",
+              render: (price, record) => {
+                const totalPrice = Number(price) || 0;
+                return (
+                  <div className="product-price-text">
+                    {formatPrice(totalPrice)}
+                  </div>
+                );
+              },
+            },
+            {
+              key: "status",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">ស្ថានភាព</div>
+                  <div className="product-table-header-english">Status</div>
+                </div>
+              ),
+              dataIndex: "status",
+              render: (status) =>
+                status == 1 ? (
+                  <Tag color="green" className="product-tag">Active</Tag>
+                ) : (
+                  <Tag color="red" className="product-tag">Inactive</Tag>
+                ),
+            },
+            {
+              key: "Action",
+              title: (
+                <div className="product-table-header">
+                  <div className="product-table-header-khmer">សកម្មភាព</div>
+                  <div className="product-table-header-english">Action</div>
+                </div>
+              ),
+              align: "center",
+              width: 120,
+              render: (item, data, index) => (
+                <Space>
+                  {isPermission("customer.getone") && (
+                    <Button
+                      type="primary"
+                      icon={<MdEdit />}
+                      onClick={() => onClickEdit(data, index)}
+                      className="product-action-btn"
+                    />
+                  )}
+                  {isPermission("customer.getone") && (
+                    <Button
+                      type="primary"
+                      danger
+                      icon={<MdDelete />}
+                      onClick={() => onClickDelete(data, index)}
+                      className="product-action-btn"
+                    />
+                  )}
+                </Space>
+              ),
+            },
+          ]}
+        />
+      </Card>
+
+      {/* Add/Edit Product Modal */}
       <Modal
         open={state.visibleModal}
-        title={form.getFieldValue("id") ? "Edit Product" : "New Product"}
+        title={
+          <div className="product-modal-title">
+            <BsBoxSeam className="product-modal-icon" size={20} />
+            <span>
+              {isEditMode ? (
+                <div>
+                  <div className="product-modal-title-khmer">កែប្រែព័ត៌មានផលិតផល</div>
+                  <div className="product-modal-title-english">Edit Product</div>
+                </div>
+              ) : (
+                <div>
+                  <div className="product-modal-title-khmer">បន្ថែមផលិតផលច្រើនប្រភេទ</div>
+                  <div className="product-modal-title-english">Add Multiple Products</div>
+                </div>
+              )}
+            </span>
+          </div>
+        }
         footer={null}
         onCancel={onCloseModal}
-        width={700}
+        width={1400}
+        bodyStyle={{ maxHeight: '80vh', overflow: 'auto' }}
+        className="product-modal"
       >
         <Form
           layout="vertical"
           onFinish={onFinish}
           form={form}
-          onValuesChange={(changedValues, allValues) => {
-            // Call the existing onValuesChange function if it exists
-            if (onValuesChange) onValuesChange(changedValues, allValues);
-
-            // Calculate total price based on quantity, unit price, and actual price
-            const { qty, unit_price, actual_price } = allValues;
-            if (qty && unit_price && actual_price) {
-              const totalPrice = (qty * unit_price) / actual_price;
-
-              // Round the total price to the nearest whole number
-              const roundedTotalPrice = Math.round(totalPrice);
-
-              // Update the form field with the rounded total price
-              form.setFieldsValue({ price: roundedTotalPrice });
-            }
-          }}
+          onValuesChange={onValuesChange}
+          className="product-form"
         >
-          <Row gutter={8}>
-            <Col span={12}>
-              <Form.Item
-                name={"name"}
-                label={
-                  <div>
-                    <div className="khmer-text">ឈ្មោះផលិតផល</div>
-                    <div className="english-text">Product Name</div>
+          {/* Hidden field for product ID (for edit mode) */}
+          <Form.Item name="id" hidden>
+            <Input />
+          </Form.Item>
+
+          <Row gutter={16}>
+            {/* Common Fields Section */}
+            <Col span={24}>
+              <Card
+                title={
+                  <div className="product-section-title">
+                    <div className="product-section-icon-container">
+                      <FaWarehouse className="product-section-icon" />
+                    </div>
+                    <div>
+                      <div className="product-section-title-khmer">ព័ត៌មានទូទៅ</div>
+                      <div className="product-section-title-english">Common Information</div>
+                    </div>
                   </div>
                 }
-                rules={[
-                  {
-                    required: true,
-                    message: "Please fill in product Name",
-                  },
-                ]}
+                className="product-section-card"
               >
-               <Select
-    options={product}
-    onChange={handleChange}
-    placeholder="Select a product"
-    style={{ width: 200 }}
-  />
-              </Form.Item>
-              <Form.Item
-                name={"category_id"}
-                label={
-                  <div>
-                    <div className="khmer-text">ប្រភេទផលិតផល</div>
-                    <div className="english-text">Category</div>
-                  </div>
-                }
-                rules={[
-                  {
-                    required: true,
-                    message: "Please fill in product category",
-                  },
-                ]}
-              >
-                <Select placeholder="Select category" options={config?.category} />
-              </Form.Item>
-              <Form.Item
-                name={"barcode"}
-                label={
-                  <div>
-                    <div className="khmer-text">លេខបាកូដ</div>
-                    <div className="english-text">Barcode</div>
-                  </div>
-                }
-              >
-                <Input disabled placeholder="Barcode" style={{ width: "100%" }} />
-              </Form.Item>
-              <Form.Item
-                name={"qty"}
-                label={
-                  <div>
-                    <div className="khmer-text">បរិមាណ</div>
-                    <div className="english-text">Quantity</div>
-                  </div>
-                }
-              >
-                <InputNumber
-                  placeholder="Quantity"
-                  style={{ width: "100%" }}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")} // Add commas for thousands
-                  parser={(value) => value.replace(/(,*)/g, "")} // Remove commas when parsing
-                />
-              </Form.Item>
-              {/* <Form.Item
-                name={"discount"}
-                label={
-                  <div>
-                    <div className="khmer-text">បញ្ចុះតម្លៃ (%)</div>
-                    <div className="english-text">Discount (%)</div>
-                  </div>
-                }
-              >
-                <InputNumber
-                  placeholder="Discount"
-                  style={{ width: "100%" }}
-                  onChange={(value) => {
-                    // Trigger the onValuesChange function when discount changes
-                    form.setFieldsValue({ discount: value });
-                    onValuesChange({ discount: value }, form.getFieldsValue());
-                  }}
-                />
-              </Form.Item> */}
-              <Form.Item
-                name={"description"}
-                label={
-                  <div>
-                    <div className="khmer-text">ការពិពណ៌នា</div>
-                    <div className="english-text">Description</div>
-                  </div>
-                }
-              >
-                <Input.TextArea placeholder="Description" />
-              </Form.Item>
+                <Row gutter={16}>
+                  <Col span={8}>
+                    <Form.Item
+                      name="customer_id"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">អតិថិជន</div>
+                          <div className="product-label-english">Customer</div>
+                        </div>
+                      }
+                      rules={[{ required: true, message: "សូមជ្រើសរើសអតិថិជន / Please select customer" }]}
+                    >
+                      <Select
+                        showSearch
+                        placeholder="Select customer"
+                        options={customers.map((customer, index) => ({
+                          ...customer,
+                          label: `${index + 1}. ${customer.label}`,
+                          value: customer.value,
+                          index: index + 1
+                        }))}
+                        optionFilterProp="children"
+                        filterOption={(input, option) => {
+                          const searchValue = input.toLowerCase();
+                          const label = option.label.toLowerCase();
+                          const indexStr = option.index.toString();
+                          return indexStr.includes(searchValue) || label.includes(searchValue);
+                        }}
+                        onSelect={(value, option) => {
+                          form.setFieldsValue({
+                            customer_address: option.address,
+                            customer_tel: option.tel
+                          });
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item
+                      name="company_name"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">ក្រុមហ៊ុន</div>
+                          <div className="product-label-english">Company</div>
+                        </div>
+                      }
+                      rules={[{ required: true, message: "Please Select Company Name" }]}
+                    >
+                      <Select
+                        showSearch
+                        placeholder="Select Company"
+                        optionFilterProp="label"
+                        className="product-select"
+                        filterOption={(input, option) =>
+                          option.label.toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={
+                          config?.company_name?.map((item, index) => ({
+                            label: `${index + 1}. ${item.label}`,
+                            value: item.value,
+                          })) || []
+                        }
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item
+                      name="unit"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">ឯកតា</div>
+                          <div className="product-label-english">Unit</div>
+                        </div>
+                      }
+                      rules={[{required:true,message:"Pleas select your Unit!"}]}
+                    >
+                      <Select
+                        placeholder="Select Unit"
+                        options={config?.unit}
+                        className="product-select"
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item
+                      name="create_at"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">ថ្ងៃទីបញ្ជាទិញ</div>
+                          <div className="product-label-english">Order Date</div>
+                        </div>
+                      }
+                      initialValue={moment()}
+                    >
+                      <DatePicker
+                        className="product-datepicker"
+                        format="DD-MM-YYYY"
+                        showNow={false}
+                        placeholder="Select date"
+                        style={{ width: '100%' }}
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item
+                      name="receive_date"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">ថ្ងៃទទួលទំនិញ</div>
+                          <div className="product-label-english">Receive Date</div>
+                        </div>
+                      }
+                      initialValue={moment()}
+                    >
+                      <DatePicker
+                        className="product-datepicker"
+                        format="DD-MM-YYYY"
+                        showNow={false}
+                        placeholder="Select date"
+                        style={{ width: '100%' }}
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item
+                      name="status"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">ស្ថានភាព</div>
+                          <div className="product-label-english">Status</div>
+                        </div>
+                      }
+                      initialValue={1}
+                    >
+                      <Select
+                        placeholder="Select status"
+                        options={[
+                          { label: "Active", value: 1 },
+                          { label: "Inactive", value: 0 },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item
+                      name="description"
+                      label={
+                        <div>
+                          <div className="product-label-khmer">លេខប័ណ្ណ</div>
+                          <div className="product-label-english">Card Number</div>
+                        </div>
+                      }
+                      rules={[{required:true,message:"Pleas input your card number!"}]}
+                    >
+                      <Input placeholder="វិកយប័ត្រលេខ / Invoice Number" />
+                    </Form.Item>
+                  </Col>
+
+                
+                </Row>
+              </Card>
             </Col>
-            <Col span={12}>
-              <Form.Item
-                name={"company_name"}
-                label={
-                  <div>
-                    <div className="khmer-text">ក្រុមហ៊ុន</div>
-                    <div className="english-text">Company</div>
+
+            {/* Multiple Products Section */}
+            <Col span={24}>
+              <Card
+                title={
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div className="product-section-title-khmer">បញ្ចូលផលិតផលច្រើនប្រភេទ</div>
+                      <div className="product-section-title-english">Multiple Product Entry</div>
+                    </div>
+                    {!isEditMode && (
+                      <Button 
+                        type="primary" 
+                        onClick={addProductItem} 
+                        icon={<AiOutlinePlusCircle />}
+                      >
+                        Add Product
+                      </Button>
+                    )}
                   </div>
                 }
-                rules={[
-                  {
-                    required: true,
-                    message: "Please Select Company Name",
-                  },
-                ]}
+                style={{ marginBottom: 16 }}
               >
-                <Select placeholder="Select Company" options={config?.company_name} />
-              </Form.Item>
-              <Form.Item
-                name={"unit"}
-                label={
-                  <div>
-                    <div className="khmer-text">ឯកតា</div>
-                    <div className="english-text">Unit</div>
-                  </div>
-                }
-              >
-                <Select placeholder="Select Unit" options={config?.unit} style={{ width: "100%" }} />
-              </Form.Item>
-              <Form.Item
-                name={"unit_price"}
-                label={
-                  <div>
-                    <div className="khmer-text">តម្លៃឯកតា</div>
-                    <div className="english-text">Unit Price</div>
-                  </div>
-                }
-              >
-                <InputNumber
-                  placeholder="Unit Price"
-                  style={{ width: "100%" }}
-                  formatter={(value) => `$ ${Math.round(value).toLocaleString()}`} // Round and format as currency
-                  parser={(value) => Math.round(value.replace(/[^\d]/g, ""))} // Round the value when parsing
-                />
-              </Form.Item>
-              <Form.Item
-                name={"actual_price"}
-                label={
-                  <div>
-                    <div className="khmer-text">មេចែក</div>
-                    <div className="english-text">Actual Price</div>
-                  </div>
-                }
-              >
-                <InputNumber
-                  placeholder="Actual Price"
-                  style={{ width: "100%" }}
-                  formatter={(value) => `${Math.round(value).toLocaleString()}`} // Round and format as currency
-                  parser={(value) => Math.round(value.replace(/[^\d]/g, ""))} // Round the value when parsing
-                />
-              </Form.Item>
-              <Form.Item
-                name={"status"}
-                label={
-                  <div>
-                    <div className="khmer-text">ស្ថានភាព</div>
-                    <div className="english-text">Status</div>
-                  </div>
-                }
-              >
-                <Select
-                  placeholder="Select status"
-                  options={[
-                    {
-                      label: "Active",
-                      value: 1,
-                    },
-                    {
-                      label: "Inactive",
-                      value: 0,
-                    },
-                  ]}
-                />
-              </Form.Item>
-              <Form.Item
-                name={"price"}
-                label={
-                  <div>
-                    <div className="khmer-text">តម្លៃសរុប</div>
-                    <div className="english-text">Total Price</div>
-                  </div>
-                }
-              >
-                <InputNumber
-                  disabled
-                  style={{ width: "100%" }}
-                  formatter={(value) => `$ ${Math.round(value).toLocaleString()}`} // Round and format as currency
-                  parser={(value) => Math.round(value.replace(/[^\d]/g, ""))} // Round the value when parsing
-                />
-              </Form.Item>
+                {productItems.map((item) => (
+                  <Row key={item.key} gutter={16} style={{ marginBottom: 16 }}>
+                    <Col span={5}>
+                      <Form.Item
+                        name={['products', item.key, 'name']}
+                        label={
+                          <div>
+                            <div className="product-label-khmer">ផលិតផល</div>
+                            <div className="product-label-english">Product Name</div>
+                          </div>
+                        }
+                        rules={[{ required: true, message: "Select product" }]}
+                      >
+                        <Select
+                          options={config?.product}
+                          placeholder="Select product"
+                          onChange={(value) => handleProductChange(value, item.key, 'name')}
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col span={5}>
+                      <Form.Item
+                        name={['products', item.key, 'category_id']}
+                        label={
+                          <div>
+                            <div className="product-label-khmer">ប្រភេទផលិតផល</div>
+                            <div className="product-label-english">Category</div>
+                          </div>
+                        }
+                        rules={[{ required: true, message: "Select category" }]}
+                      >
+                        <Select
+                          placeholder="Select category"
+                          optionRender={(option) => (
+                            <div>
+                              <div style={{ fontWeight: 'bold' }}>{option.label}</div>
+                              {option.data?.description && (
+                                <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                                  {option.data.description}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          options={config?.category?.map(cat => ({
+                            ...cat,
+                            label: cat.label,
+                            value: cat.value,
+                            description: cat.description || ''
+                          }))}
+                          onChange={(value) => handleProductChange(value, item.key, 'category_id')}
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col span={4}>
+                      <Form.Item
+                        name={['products', item.key, 'qty']}
+                        label={
+                          <div>
+                            <div className="product-label-khmer">បរិមាណ</div>
+                            <div className="product-label-english">Quantity</div>
+                          </div>
+                        }
+                        rules={[{ required: true, message: "Enter quantity" }]}
+                      >
+                        <InputNumber
+                          placeholder="Quantity"
+                          style={{ width: "100%" }}
+                          min={1}
+                          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                          parser={(value) => value.replace(/(,*)/g, "")}
+                          onChange={(value) => handleProductChange(value, item.key, 'qty')}
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col span={5}>
+                      <Form.Item
+                        name={['products', item.key, 'unit_price']}
+                        label={
+                          <div>
+                            <div className="product-label-khmer">តម្លៃតោន</div>
+                            <div className="product-label-english">Unit Price</div>
+                          </div>
+                        }
+                        rules={[{ required: true, message: "Enter unit price" }]}
+                      >
+                        <InputNumber
+                          placeholder="Unit Price"
+                          style={{ width: "100%" }}
+                          min={0.01}
+                          formatter={(value) => `$ ${Math.round(value || 0).toLocaleString()}`}
+                          parser={(value) => Math.round(value.replace(/[^\d]/g, ""))}
+                          onChange={(value) => handleProductChange(value, item.key, 'unit_price')}
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    {/* Hidden fields */}
+                    <Form.Item
+                      name={['products', item.key, 'actual_price']}
+                      style={{ display: 'none' }}
+                    >
+                      <InputNumber />
+                    </Form.Item>
+
+                    <Form.Item
+                      name={['products', item.key, 'barcode']}
+                      style={{ display: 'none' }}
+                    >
+                      <Input />
+                    </Form.Item>
+
+                    {!isEditMode && (
+                      <Col span={2} style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <Tooltip title="Remove Product">
+                          <Button
+                            danger
+                            icon={<BsTrash />}
+                            onClick={() => removeProductItem(item.key)}
+                            disabled={productItems.length <= 1}
+                            style={{ marginBottom: '24px' }}
+                          />
+                        </Tooltip>
+                      </Col>
+                    )}
+                  </Row>
+                ))}
+              </Card>
             </Col>
           </Row>
-          <div style={{ textAlign: "right" }}>
+
+          <div style={{ textAlign: "right", marginTop: 16 }}>
             <Space>
-              <Button onClick={onCloseModal}>Cancel</Button>
-              <Button type="primary" htmlType="submit">
-                {form.getFieldValue("id") ? "Update" : "Save"}
+              <Button onClick={onCloseModal}>
+                Cancel
+              </Button>
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                loading={state.loading}
+                disabled={!form.getFieldValue('customer_id')}
+              >
+                {isEditMode ? "Update Product" : `Save All Products (${productItems.length})`}
               </Button>
             </Space>
           </div>
         </Form>
       </Modal>
-      <Row style={{ 
-  marginBottom: 24,
-  background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-  padding: '18px 20px',
-  borderRadius: 12,
-  border: '1px solid #dee2e6',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-}}>
-  <Col span={24}>
-    <Space 
-      size={[14, 12]} 
-      wrap
-      style={{
-        width: '100%',
-        justifyContent: 'flex-start',
-        alignItems: 'center'
-      }}
-    >
-      {Object.entries(state.totals || {}).map(([category, total]) => {
-        const categoryItems = state.list.filter(item => item.category_name === category);
-        const totalSum = categoryItems.reduce((sum, item) => sum + calculateTotalPrice(item), 0);
-        
-        // Dynamic color based on category
-        const categoryColors = {
-          'ហ្កាស(LPG)': { bg: '#fff8e6', border: '#ffd666', text: '#d46b08' },
-          'ប្រេងសាំងធម្មតា(EA)': { bg: '#e6fffb', border: '#5cdbd3', text: '#08979c' },
-          'ប្រេងម៉ាស៊ូត(Do)': { bg: '#f6ffed', border: '#b7eb8f', text: '#389e0d' },
-          'ប្រេងសាំងស៊ុបពែរ(Super)': { bg: '#f0f5ff', border: '#adc6ff', text: '#1d39c4' },
-          'default': { bg: '#fafafa', border: '#d9d9d9', text: '#434343' }
-        };
-        
-        const colors = categoryColors[category] || categoryColors['default'];
-        
-        return (
-          <Tag 
-            key={category} 
-            style={{
-              margin: 0,
-              padding: '10px 16px',
-              fontSize: 14,
-              fontWeight: 500,
-              borderRadius: 8,
-              background: colors.bg,
-              border: `1px solid ${colors.border}`,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s ease',
-              ':hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.08)'
-              }
-            }}
-          >
-            <span style={{ 
-              fontWeight: 600, 
-              color: colors.text,
-              minWidth: 'max-content'
-            }}>
-              {category}
-            </span>
-            
-            <Divider type="vertical" style={{ 
-              height: 22, 
-              margin: '0 6px',
-              borderColor: colors.border,
-              opacity: 0.6
-            }} />
-            
-            <span style={{ 
-              color: colors.text,
-              minWidth: 'max-content',
-              fontWeight: 500
-            }}>
-              {total.toLocaleString()}L
-            </span>
-            
-            <Divider type="vertical" style={{ 
-              height: 22, 
-              margin: '0 6px',
-              borderColor: colors.border,
-              opacity: 0.6
-            }} />
-            
-            <span style={{ 
-              color: '#1d39c4',
-              fontWeight: 600,
-              minWidth: 'max-content',
-              background: 'rgba(24, 144, 255, 0.1)',
-              padding: '2px 6px',
-              borderRadius: 4
-            }}>
-              {formatCurrencyalltotal(totalSum)}
-            </span>
-          </Tag>
-        );
-      })}
-    </Space>
-  </Col>
-</Row>
-
-      <Table
-        className="custom-table"
-        rowClassName={() => "pos-row"}
-        dataSource={state.list}
-        pagination={{
-          pageSize: 2, // ចំនួនធាតុក្នុងមួយទំព័រ
-          total: state.total, // ចំនួនសរុបនៃធាតុទាំងអស់
-          onChange: (page) => {
-            refPage.current = page; // កំណត់ទំព័របច្ចុប្បន្ន
-            getList(); // ទាញយកទិន្នន័យសម្រាប់ទំព័រថ្មី
-          },
-          hideOnSinglePage: false, // បង្ហាញ pagination ទោះបីមានតែ 1 ទំព័រក៏ដោយ
-        }}
-        columns={[
-          {
-            key: "name",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">ឈ្មោះ</div>
-                <div className="english-text">Name</div>
-              </div>
-            ),
-            dataIndex: "name",
-            render: (text) => (
-              <div className="truncate-text" title={text || ""}>
-                {text || "N/A"}
-              </div>
-            ),
-          },
-          {
-            key: "barcode",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">លេខបាកូដ</div>
-                <div className="english-text">Barcode</div>
-              </div>
-            ),
-            dataIndex: "barcode",
-            render: (value) => <Tag color="blue">{value}</Tag>,
-          },
-          {
-            key: "description",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">សេចក្ដីពិពណ៌នា</div>
-                <div className="english-text">Description</div>
-              </div>
-            ),
-            dataIndex: "description",
-            render: (text) => (
-              <div className="truncate-text" title={text || ""}>
-                {text || "N/A"}
-              </div>
-            ),
-          },
-          {
-            key: "category_name",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">ប្រភេទ</div>
-                <div className="english-text">Category</div>
-              </div>
-            ),
-            dataIndex: "category_name",
-          },
-          // {
-          //   key: "brand",
-          //   title: (
-          //     <div className="table-header">
-          //       <div className="khmer-text">ម៉ាក</div>
-          //       <div className="english-text">Brand</div>
-          //     </div>
-          //   ),
-          //   dataIndex: "brand",
-          // },
-          {
-            key: "company_name",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">ឈ្មោះក្រុមហ៊ុន</div>
-                <div className="english-text">Company Name</div>
-              </div>
-            ),
-            dataIndex: "company_name",
-          },
-          {
-            key: "qty",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">បរិមាណ</div>
-                <div className="english-text">Quantity</div>
-              </div>
-            ),
-            dataIndex: "qty",
-            render: (value) => (
-              <Tag color={value > 5000 ? "green" : "red"}>
-                {value.toLocaleString()}  {/* Formats number with commas */}
-              </Tag>
-            ),
-          },
-
-          {
-            key: "unit",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">ឯកតា</div>
-                <div className="english-text">Unit</div>
-              </div>
-            ),
-            dataIndex: "unit",
-            render: (value) => <Tag color="green">{value}</Tag>,
-          },
-          {
-            key: "unit_price",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">តម្លៃរាយ</div>
-                <div className="english-text">Unit Price</div>
-              </div>
-            ),
-            dataIndex: "unit_price",
-            render: (value) => (
-              <Tag color={value > 20 ? "green" : "volcano"}>
-                {formatCurrency(value)}
-              </Tag>
-            ),
-          },
-          {
-            key: "total_price",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">តម្លៃសរុប</div>
-                <div className="english-text">Total Price</div>
-              </div>
-            ),
-            dataIndex: "total_price",
-            render: (text) => formatCurrency(Math.round(text)), // Round to nearest whole number
-          },
-
-          // {
-          //   key: "discount",
-          //   title: (
-          //     <div className="table-header">
-          //       <div className="khmer-text">បញ្ចុះតម្លៃ</div>
-          //       <div className="english-text">Discount</div>
-          //     </div>
-          //   ),
-          //   dataIndex: "discount",
-          // },
-          {
-            key: "status",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">ស្ថានភាព</div>
-                <div className="english-text">Status</div>
-              </div>
-            ),
-            dataIndex: "status",
-            render: (status) =>
-              status == 1 ? (
-                <Tag color="green">Active</Tag>
-              ) : (
-                <Tag color="red">Inactive</Tag>
-              ),
-          },
-          {
-            key: "create_at",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">កាលបរិច្ឆេទបង្កើត</div>
-                <div className="english-text">Created At</div>
-              </div>
-            ),
-            dataIndex: "create_at",
-            render: (value) => formatDateClient(value, "DD/MM/YYYY H:m A"),
-          },
-          {
-            key: "create_by",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">បង្កើតដោយ</div>
-                <div className="english-text">Created By</div>
-              </div>
-            ),
-            dataIndex: "create_by",
-          },
-          {
-            key: "Action",
-            title: (
-              <div className="table-header">
-                <div className="khmer-text">សកម្មភាព</div>
-                <div className="english-text">Action</div>
-              </div>
-            ),
-            align: "center",
-            render: (item, data, index) => (
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<MdEdit />}
-                  onClick={() => onClickEdit(data, index)}
-                />
-                <Button
-                  type="primary"
-                  danger
-                  icon={<MdDelete />}
-                  onClick={() => onClickDelete(data, index)}
-                />
-              </Space>
-            ),
-          },
-        ]}
-      />
     </MainPage>
   );
 }
+
 export default ProductPage;

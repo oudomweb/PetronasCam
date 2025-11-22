@@ -1,1575 +1,51 @@
-// import { useEffect, useState } from "react";
-// import { request } from "../../util/helper";
-// import HomeGrid from "../../component/home/HomeGrid";
-// import HomeSaleChart from "../../component/home/HomeSaleChart";
-// import HomePurchaseChart from "../../component/home/HomePurchaseChart";
-// import { useNavigate } from "react-router-dom";
-// function HomePage() {
-//   const [dashboard, setDashboard] = useState([]);
-//   const [saleBymonth, setSalebyMonth] = useState([]);
-//   const [expenseBymonth, setExpensByMonth] = useState([]);
-//   const navigate = useNavigate();
-//   useEffect(() => {
-//         getList();
-//   }, []);
-//   const getList = async () => {
-//     const res = await request("dashbaord", "get");
-//     if (res && !res.error) {
-//       setDashboard(res.dashboard);
-//       if (res.Sale_Summary_By_Month) {
-//         let dataTmp = [["Month", "Sale"]];
-//         res.Sale_Summary_By_Month.forEach((item) => {
-//           dataTmp.push([item.title + "", Number(item.total) || 0]);
-//         });
-//         setSalebyMonth(dataTmp);
-//       }
-//       if (res.Expense_Summary_By_Month) {
-//         let dataTmp = [["Month", "Sale"]];
-
-//         res.Expense_Summary_By_Month.forEach((item) => {
-//           dataTmp.push([item.title + "", Number(item.total) || 0]);
-//         });
-//         setExpensByMonth(dataTmp);
-//       }
-//     }
-//   };
-//   return (
-//     <div className="home-page">
-//       <div className="home-header">
-//         {/* You can add content here for the header or any other section */}
-//         <HomeGrid data={dashboard} />
-//       </div>
-
-//       <div className="sale-chart-section">
-//         <HomeSaleChart data={saleBymonth} className="custom-sale-chart" />
-//       </div>
-
-//       <div className="purchase-chart-section">
-//         <HomePurchaseChart data={expenseBymonth} className="custom-purchase-chart" />
-//       </div>
-//     </div>
-//   );
-
-// }
-// export default HomePage;
-
-
-
-// import { useEffect, useState, useRef } from "react";
-// import { request } from "../../util/helper";
-// import HomeGrid from "../../component/home/HomeGrid";
-// import HomeSaleChart from "../../component/home/HomeSaleChart";
-// import HomePurchaseChart from "../../component/home/HomePurchaseChart";
-// import { useNavigate } from "react-router-dom";
-
-// function HomePage() {
-//   const [dashboard, setDashboard] = useState([]);
-//   const [saleBymonth, setSalebyMonth] = useState([]);
-//   const [expenseBymonth, setExpensByMonth] = useState([]);
-//   const navigate = useNavigate();
-//   const dashboardRef = useRef(null);
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   useEffect(() => {
-//     getList();
-//   }, []);
-
-//   const getList = async () => {
-//     setIsLoading(true);
-//     try {
-//       const res = await request("dashbaord", "get");
-//       if (res && !res.error) {
-//         setDashboard(res.dashboard);
-//         if (res.Sale_Summary_By_Month) {
-//           let dataTmp = [["Month", "Sale"]];
-//           res.Sale_Summary_By_Month.forEach((item) => {
-//             dataTmp.push([item.title + "", Number(item.total) || 0]);
-//           });
-//           setSalebyMonth(dataTmp);
-//         }
-//         if (res.Expense_Summary_By_Month) {
-//           let dataTmp = [["Month", "Sale"]];
-//           res.Expense_Summary_By_Month.forEach((item) => {
-//             dataTmp.push([item.title + "", Number(item.total) || 0]);
-//           });
-//           setExpensByMonth(dataTmp);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error fetching dashboard data:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handlePrint = () => {
-//     const dashboardContent = dashboardRef.current;
-//     const printWindow = window.open('', '_blank');
-
-//     printWindow.document.write(`
-//       <html>
-//         <head>
-//           <title>Dashboard Report</title>
-//           <style>
-//             body {
-//               font-family: Arial, sans-serif;
-//               padding: 20px;
-//             }
-//             .dashboard-title {
-//               text-align: center;
-//               margin-bottom: 20px;
-//             }
-//             .print-container {
-//               width: 100%;
-//             }
-//             .chart-section {
-//               page-break-inside: avoid;
-//               margin-bottom: 30px;
-//             }
-//             @media print {
-//               button {
-//                 display: none;
-//               }
-//             }
-//           </style>
-//         </head>
-//         <body>
-//           <div class="print-container">
-//             <h1 class="dashboard-title">Dashboard Report</h1>
-//             ${dashboardContent.innerHTML}
-//           </div>
-//           <script>
-//             window.onload = function() {
-//               setTimeout(function() {
-//                 window.print();
-//                 window.close();
-//               }, 500);
-//             }
-//           </script>
-//         </body>
-//       </html>
-//     `);
-//   };
-
-//   const handleDownloadPDF = async () => {
-//     try {
-//       setIsLoading(true);
-
-//       // You would typically use a library like jsPDF or html2pdf here
-//       // This is a simplified example
-//       const { jsPDF } = await import('jspdf');
-//       const { default: html2canvas } = await import('html2canvas');
-
-//       const dashboardContent = dashboardRef.current;
-//       const canvas = await html2canvas(dashboardContent);
-//       const imgData = canvas.toDataURL('image/png');
-
-//       const pdf = new jsPDF('p', 'mm', 'a4');
-//       const pdfWidth = pdf.internal.pageSize.getWidth();
-//       const pdfHeight = pdf.internal.pageSize.getHeight();
-//       const imgWidth = canvas.width;
-//       const imgHeight = canvas.height;
-//       const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-//       const imgX = (pdfWidth - imgWidth * ratio) / 2;
-
-//       pdf.addImage(imgData, 'PNG', imgX, 20, imgWidth * ratio, imgHeight * ratio);
-//       pdf.save('dashboard-report.pdf');
-//     } catch (error) {
-//       console.error("Error generating PDF:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleDownloadCSV = () => {
-//     // Create CSV for sale data
-//     let saleCSV = "Month,Sale\n";
-//     saleBymonth.slice(1).forEach(row => {
-//       saleCSV += `${row[0]},${row[1]}\n`;
-//     });
-
-//     // Create CSV for expense data
-//     let expenseCSV = "Month,Expense\n";
-//     expenseBymonth.slice(1).forEach(row => {
-//       expenseCSV += `${row[0]},${row[1]}\n`;
-//     });
-
-//     // Combine into one CSV file
-//     const combinedCSV = "Sales Data\n" + saleCSV + "\nExpense Data\n" + expenseCSV;
-
-//     // Create download link
-//     const blob = new Blob([combinedCSV], { type: 'text/csv;charset=utf-8;' });
-//     const url = URL.createObjectURL(blob);
-//     const link = document.createElement("a");
-//     link.setAttribute("href", url);
-//     link.setAttribute("download", "dashboard-data.csv");
-//     link.style.visibility = 'hidden';
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-//   };
-
-//   return (
-//     <div className="home-page">
-//       <div className="dashboard-controls">
-//         <h1>Dashboard</h1>
-//         <div className="dashboard-actions">
-//           <button 
-//             className="action-button print-button" 
-//             onClick={handlePrint}
-//             disabled={isLoading}
-//           >
-//             <span className="icon">🖨️</span> Print Dashboard
-//           </button>
-//           <button 
-//             className="action-button download-pdf-button" 
-//             onClick={handleDownloadPDF}
-//             disabled={isLoading}
-//           >
-//             <span className="icon">📄</span> Download PDF
-//           </button>
-//           <button 
-//             className="action-button download-csv-button" 
-//             onClick={handleDownloadCSV}
-//             disabled={isLoading}
-//           >
-//             <span className="icon">📊</span> Download CSV
-//           </button>
-//         </div>
-//       </div>
-
-//       {isLoading ? (
-//         <div className="loading-indicator">Loading dashboard data...</div>
-//       ) : (
-//         <div className="dashboard-content" ref={dashboardRef}>
-//           <div className="home-header">
-//             <HomeGrid data={dashboard} />
-//           </div>
-
-//           <div className="sale-chart-section">
-//             <h2>Sales Summary</h2>
-//             <HomeSaleChart data={saleBymonth} className="custom-sale-chart" />
-//           </div>
-
-//           <div className="purchase-chart-section">
-//             <h2>Expense Summary</h2>
-//             <HomePurchaseChart data={expenseBymonth} className="custom-purchase-chart" />
-//           </div>
-//         </div>
-//       )}
-
-//       <style jsx>{`
-//         .home-page {
-//           padding: 20px;
-//           background-color: #f5f5f5;
-//           min-height: 100vh;
-//         }
-
-//         .dashboard-controls {
-//           display: flex;
-//           justify-content: space-between;
-//           align-items: center;
-//           margin-bottom: 20px;
-//           background-color: white;
-//           padding: 15px;
-//           border-radius: 8px;
-//           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-//         }
-
-//         .dashboard-actions {
-//           display: flex;
-//           gap: 10px;
-//         }
-
-//         .action-button {
-//           padding: 8px 16px;
-//           border: none;
-//           border-radius: 4px;
-//           cursor: pointer;
-//           display: flex;
-//           align-items: center;
-//           gap: 5px;
-//           font-weight: 500;
-//           transition: background-color 0.3s;
-//         }
-
-//         .print-button {
-//           background-color: #4caf50;
-//           color: white;
-//         }
-
-//         .download-pdf-button {
-//           background-color: #f44336;
-//           color: white;
-//         }
-
-//         .download-csv-button {
-//           background-color: #2196f3;
-//           color: white;
-//         }
-
-//         .action-button:hover {
-//           opacity: 0.9;
-//         }
-
-//         .action-button:disabled {
-//           background-color: #cccccc;
-//           cursor: not-allowed;
-//         }
-
-//         .loading-indicator {
-//           text-align: center;
-//           padding: 40px;
-//           font-size: 18px;
-//           color: #666;
-//         }
-
-//         .dashboard-content {
-//           background-color: white;
-//           padding: 20px;
-//           border-radius: 8px;
-//           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-//         }
-
-//         .sale-chart-section,
-//         .purchase-chart-section {
-//           margin-top: 30px;
-//           padding: 15px;
-//           background-color: #fafafa;
-//           border-radius: 8px;
-//           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-//         }
-
-//         h2 {
-//           margin-top: 0;
-//           color: #333;
-//           font-size: 18px;
-//           margin-bottom: 15px;
-//         }
-
-//         @media print {
-//           .dashboard-controls {
-//             display: none;
-//           }
-
-//           .home-page {
-//             padding: 0;
-//             background-color: white;
-//           }
-
-//           .dashboard-content {
-//             box-shadow: none;
-//             padding: 0;
-//           }
-//         }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-// export default HomePage;
-
-
-// import { useEffect, useState, useRef } from "react";
-// import { request } from "../../util/helper";
-// import { Button, Card, Row, Col, Statistic, Divider, Select, DatePicker } from "antd";
-// import { DownloadOutlined, PrinterOutlined, BarChartOutlined, LineChartOutlined, PieChartOutlined, UserOutlined, DollarOutlined } from "@ant-design/icons";
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line, CartesianGrid, PieChart, Pie, Cell } from "recharts";
-// import html2canvas from "html2canvas";
-// import jsPDF from "jspdf";
-// import moment from "moment";
-// import { BsSearch } from "react-icons/bs";
-
-// const { RangePicker } = DatePicker;
-// const { Option } = Select;
-
-// function HomePage() {
-//   const [dashboard, setDashboard] = useState([]);
-//   const [saleByMonth, setSaleByMonth] = useState([]);
-//   const [expenseByMonth, setExpenseByMonth] = useState([]);
-//   const [dateRange, setDateRange] = useState([moment().startOf('year'), moment()]);
-//   const [categoryId, setCategoryId] = useState(null);
-//   const [expenseTypeId, setExpenseTypeId] = useState(null);
-//   const [supplierId, setSupplierId] = useState(null);
-//   const [topSales, setTopSales] = useState([]);
-//   const [customerData, setCustomerData] = useState([]);
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   const dashboardRef = useRef(null);
-
-//   // Colors for charts
-//   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-//   useEffect(() => {
-//     getList();
-//     fetchTopSales();
-//     fetchReports();
-//   }, [dateRange, categoryId, expenseTypeId, supplierId]);
-
-//   const getList = async () => {
-//     setIsLoading(true);
-//     try {
-//       const res = await request("dashbaord", "get");
-//       if (res && !res.error) {
-//         setDashboard(res.dashboard);
-
-//         if (res.Sale_Summary_By_Month) {
-//           const saleData = res.Sale_Summary_By_Month.map(item => ({
-//             month: item.title,
-//             sale: Number(item.total) || 0
-//           }));
-//           setSaleByMonth(saleData);
-//         }
-
-//         if (res.Expense_Summary_By_Month) {
-//           const expenseData = res.Expense_Summary_By_Month.map(item => ({
-//             month: item.title,
-//             expense: Number(item.total) || 0
-//           }));
-//           setExpenseByMonth(expenseData);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error fetching dashboard data:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const fetchTopSales = async () => {
-//     try {
-//       const res = await request("report/top_sale", "get");
-//       if (res && res.list) {
-//         // Transform for pie chart
-//         const topProducts = res.list.map(item => ({
-//           name: item.product_name,
-//           value: Number(item.total_sale_amount),
-//           category: item.category_name
-//         }));
-//         setTopSales(topProducts);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching top sales data:", error);
-//     }
-//   };
-
-//   const fetchReports = async () => {
-//     try {
-//       const [fromDate, toDate] = dateRange;
-//       const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//       const formattedToDate = toDate.format('YYYY-MM-DD');
-
-//       // Fetch customer data
-//       const customerRes = await request(`report/customer?from_date=${formattedFromDate}&to_date=${formattedToDate}`, "get");
-//       if (customerRes && customerRes.list) {
-//         setCustomerData(customerRes.list.map(item => ({
-//           date: item.title,
-//           count: Number(item.total_amount)
-//         })));
-//       }
-//     } catch (error) {
-//       console.error("Error fetching report data:", error);
-//     }
-//   };
-
-//   const handlePrint = () => {
-//     const printContent = document.getElementById("dashboard-content");
-//     const originalContents = document.body.innerHTML;
-//     document.body.innerHTML = printContent.innerHTML;
-//     window.print();
-//     document.body.innerHTML = originalContents;
-//     window.location.reload();
-//   };
-
-//   const handleDownloadPDF = () => {
-//     const input = document.getElementById("dashboard-content");
-//     html2canvas(input, { scale: 2 }).then((canvas) => {
-//       const imgData = canvas.toDataURL("image/png");
-//       const pdf = new jsPDF("landscape");
-//       const imgWidth = 280;
-//       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-//       pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-//       pdf.save("dashboard.pdf");
-//     });
-//   };
-
-//   const handleDateRangeChange = (dates) => {
-//     setDateRange(dates);
-//   };
-
-//   // Custom tooltip formatter for charts
-//   const tooltipFormatter = (value) => {
-//     return [`$${value.toFixed(2)}`, "Amount"];
-//   };
-
-//   // Combined chart data
-//   const combinedChartData = saleByMonth.map(sale => {
-//     const expenseEntry = expenseByMonth.find(exp => exp.month === sale.month);
-//     return {
-//       month: sale.month,
-//       sale: sale.sale,
-//       expense: expenseEntry ? expenseEntry.expense : 0,
-//       profit: sale.sale - (expenseEntry ? expenseEntry.expense : 0)
-//     };
-//   });
-//   const handleSearch=()=>{
-
-//   }
-
-//   return (
-//     <div className="home-page" style={{ padding: "20px", backgroundColor: "#f0f2f5" }}>
-//       {/* Dashboard Header */}
-//       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-//         <Col span={18}>
-//           <h1 style={{ fontSize: 28, margin: 0, color: "#1a3353" }}>Business Intelligence Dashboard</h1>
-//           <p style={{ color: "#666" }}>Comprehensive overview of your business performance</p>
-//         </Col>
-//         <Col span={6} style={{ textAlign: "right" }}>
-//           <Button
-//             type="primary"
-//             icon={<DownloadOutlined />}
-//             onClick={handleDownloadPDF}
-//             style={{ marginRight: 8, backgroundColor: "#1a3353" }}
-//           >
-//             Download PDF
-//           </Button>
-//           <Button
-//             type="default"
-//             icon={<PrinterOutlined />}
-//             onClick={handlePrint}
-//           >
-//             Print
-//           </Button>
-//         </Col>
-//       </Row>
-
-//       {/* Filters */}
-//       <Card style={{ marginBottom: 20, backgroundColor: "#fff", borderRadius: 8 }}>
-//         <Row gutter={16}>
-//           <Col span={8}>
-//             <RangePicker 
-//               value={dateRange}
-//               onChange={handleDateRangeChange}
-//               style={{ width: "100%" }}
-//             />
-//           </Col>
-//          <Button type="primary" onClick={handleSearch} icon={<BsSearch />}>
-//                     Filter
-//                   </Button>
-//         </Row>
-//       </Card>
-
-//       {/* Dashboard Content */}
-//       <div id="dashboard-content" ref={dashboardRef}>
-//         {/* Summary Cards */}
-//         <Row gutter={[16, 16]}>
-//           {dashboard.map((item, index) => (
-//             <Col xs={24} sm={12} md={8} lg={8} xl={8} key={index}>
-//               <Card 
-//                 style={{ 
-//                   height: 200, 
-//                   borderRadius: 8,
-//                   background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}33, ${COLORS[index % COLORS.length]}22)`,
-//                   border: `1px solid ${COLORS[index % COLORS.length]}44`
-//                 }}
-//                 title={
-//                   <div style={{ display: "flex", alignItems: "center" }}>
-//                     {index === 0 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 1 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 2 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 3 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 4 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     <span style={{ color: "#1a3353" }}>{item.title}</span>
-//                   </div>
-//                 }
-//               >
-//                 <div style={{ display: "flex", flexDirection: "column", height: "calc(100% - 40px)" }}>
-//                   {Object.entries(item.Summary).map(([key, value], idx) => (
-//                     <div key={idx} style={{ marginBottom: 10 }}>
-//                       <Row>
-//                         <Col span={12}>
-//                           <span style={{ color: "#666" }}>{key}:</span>
-//                         </Col>
-//                         <Col span={12} style={{ textAlign: "right" }}>
-//                           <span style={{ fontSize: idx === 0 ? 18 : 16, fontWeight: idx === 0 ? "bold" : "normal" }}>
-//                             {value}
-//                           </span>
-//                         </Col>
-//                       </Row>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </Card>
-//             </Col>
-//           ))}
-//         </Row>
-
-//         {/* Charts Section */}
-//         <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-//           {/* Combined Sales and Expenses Chart */}
-//           <Col span={24}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <BarChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span>Sales & Expenses Overview</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <BarChart data={combinedChartData}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="month" />
-//                   <YAxis />
-//                   <Tooltip formatter={tooltipFormatter} />
-//                   <Legend />
-//                   <Bar dataKey="sale" name="Sales" fill="#0088FE" />
-//                   <Bar dataKey="expense" name="Expenses" fill="#FF8042" />
-//                   <Bar dataKey="profit" name="Profit" fill="#00C49F" />
-//                 </BarChart>
-//               </ResponsiveContainer>
-//             </Card>
-//           </Col>
-//         </Row>
-
-//         <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-//           {/* Sales Trend Line Chart */}
-//           <Col xs={24} lg={12}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span>Sales Trend</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <LineChart data={saleByMonth}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="month" />
-//                   <YAxis />
-//                   <Tooltip formatter={tooltipFormatter} />
-//                   <Legend />
-//                   <Line type="monotone" dataKey="sale" stroke="#8884d8" activeDot={{ r: 8 }} />
-//                 </LineChart>
-//               </ResponsiveContainer>
-//             </Card>
-//           </Col>
-
-//           {/* Expense Trend Line Chart */}
-//           <Col xs={24} lg={12}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span>Expense Trend</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <LineChart data={expenseByMonth}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="month" />
-//                   <YAxis />
-//                   <Tooltip formatter={tooltipFormatter} />
-//                   <Legend />
-//                   <Line type="monotone" dataKey="expense" stroke="#82ca9d" activeDot={{ r: 8 }} />
-//                 </LineChart>
-//               </ResponsiveContainer>
-//             </Card>
-//           </Col>
-//         </Row>
-
-
-//       </div>
-
-//       <style jsx>{`
-//         @media print {
-//           body {
-//             -webkit-print-color-adjust: exact !important;
-//             print-color-adjust: exact !important;
-//           }
-//           .home-page {
-//             padding: 0 !important;
-//             background-color: white !important;
-//           }
-//         }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-// export default HomePage;
-
-
-
-// import { useEffect, useState, useRef } from "react";
-// import { request } from "../../util/helper";
-// import { Button, Card, Row, Col, Statistic, Divider, Select, DatePicker } from "antd";
-// import { DownloadOutlined, PrinterOutlined, BarChartOutlined, LineChartOutlined, PieChartOutlined, UserOutlined, DollarOutlined } from "@ant-design/icons";
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line, CartesianGrid, PieChart, Pie, Cell } from "recharts";
-// import html2canvas from "html2canvas";
-// import jsPDF from "jspdf";
-// import moment from "moment";
-// import { BsSearch } from "react-icons/bs";
-
-// const { RangePicker } = DatePicker;
-// const { Option } = Select;
-
-// function HomePage() {
-//   const [dashboard, setDashboard] = useState([]);
-//   const [saleByMonth, setSaleByMonth] = useState([]);
-//   const [expenseByMonth, setExpenseByMonth] = useState([]);
-//   const [dateRange, setDateRange] = useState([moment().startOf('year'), moment()]);
-//   const [categoryId, setCategoryId] = useState(null);
-//   const [expenseTypeId, setExpenseTypeId] = useState(null);
-//   const [supplierId, setSupplierId] = useState(null);
-//   const [topSales, setTopSales] = useState([]);
-//   const [customerData, setCustomerData] = useState([]);
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   const dashboardRef = useRef(null);
-
-//   // Colors for charts
-//   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-//   useEffect(() => {
-//     // Initial data load
-//     getList();
-//   }, []); // Empty dependency array for initial load only
-
-//   // Fetch all data with date filters
-//   const fetchAllData = () => {
-//     getList();
-//     fetchTopSales();
-//     fetchReports();
-//   };
-
-//   const getList = async () => {
-//     setIsLoading(true);
-//     try {
-//       // Format dates for API
-//       const [fromDate, toDate] = dateRange;
-//       const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//       const formattedToDate = toDate.format('YYYY-MM-DD');
-
-//       // Update API call to include date parameters
-//       const res = await request(`dashbaord?from_date=${formattedFromDate}&to_date=${formattedToDate}`, "get");
-//       if (res && !res.error) {
-//         setDashboard(res.dashboard);
-
-//         if (res.Sale_Summary_By_Month) {
-//           const saleData = res.Sale_Summary_By_Month.map(item => ({
-//             month: item.title,
-//             sale: Number(item.total) || 0
-//           }));
-//           setSaleByMonth(saleData);
-//         }
-
-//         if (res.Expense_Summary_By_Month) {
-//           const expenseData = res.Expense_Summary_By_Month.map(item => ({
-//             month: item.title,
-//             expense: Number(item.total) || 0
-//           }));
-//           setExpenseByMonth(expenseData);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error fetching dashboard data:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const fetchTopSales = async () => {
-//     try {
-//       // Format dates for API
-//       const [fromDate, toDate] = dateRange;
-//       const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//       const formattedToDate = toDate.format('YYYY-MM-DD');
-
-//       // Update API call to include date parameters
-//       const res = await request(`report/top_sale?from_date=${formattedFromDate}&to_date=${formattedToDate}`, "get");
-//       if (res && res.list) {
-//         // Transform for pie chart
-//         const topProducts = res.list.map(item => ({
-//           name: item.product_name,
-//           value: Number(item.total_sale_amount),
-//           category: item.category_name
-//         }));
-//         setTopSales(topProducts);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching top sales data:", error);
-//     }
-//   };
-
-//   const fetchReports = async () => {
-//     try {
-//       const [fromDate, toDate] = dateRange;
-//       const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//       const formattedToDate = toDate.format('YYYY-MM-DD');
-
-//       // Fetch customer data with date filters
-//       const customerRes = await request(`report/customer?from_date=${formattedFromDate}&to_date=${formattedToDate}`, "get");
-//       if (customerRes && customerRes.list) {
-//         setCustomerData(customerRes.list.map(item => ({
-//           date: item.title,
-//           count: Number(item.total_amount)
-//         })));
-//       }
-//     } catch (error) {
-//       console.error("Error fetching report data:", error);
-//     }
-//   };
-
-//   const handlePrint = () => {
-//     const printContent = document.getElementById("dashboard-content");
-//     const originalContents = document.body.innerHTML;
-//     document.body.innerHTML = printContent.innerHTML;
-//     window.print();
-//     document.body.innerHTML = originalContents;
-//     window.location.reload();
-//   };
-
-//   const handleDownloadPDF = () => {
-//     const input = document.getElementById("dashboard-content");
-//     html2canvas(input, { scale: 2 }).then((canvas) => {
-//       const imgData = canvas.toDataURL("image/png");
-//       const pdf = new jsPDF("landscape");
-//       const imgWidth = 280;
-//       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-//       pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-//       pdf.save("dashboard.pdf");
-//     });
-//   };
-
-//   const handleDateRangeChange = (dates) => {
-//     setDateRange(dates);
-//   };
-
-//   // Handler for the search/filter button
-//   const handleSearch = () => {
-//     fetchAllData();
-//   };
-
-//   // Custom tooltip formatter for charts
-//   const tooltipFormatter = (value) => {
-//     return [`$${value.toFixed(2)}`, "Amount"];
-//   };
-
-//   // Combined chart data
-//   const combinedChartData = saleByMonth.map(sale => {
-//     const expenseEntry = expenseByMonth.find(exp => exp.month === sale.month);
-//     return {
-//       month: sale.month,
-//       sale: sale.sale,
-//       expense: expenseEntry ? expenseEntry.expense : 0,
-//       profit: sale.sale - (expenseEntry ? expenseEntry.expense : 0)
-//     };
-//   });
-
-//   return (
-//     <div className="home-page" style={{ padding: "20px", backgroundColor: "#f0f2f5" }}>
-//       {/* Dashboard Header */}
-//       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-//         <Col span={18}>
-//           <h1 style={{ fontSize: 28, margin: 0, color: "#1a3353" }}>Business Intelligence Dashboard</h1>
-//           <p style={{ color: "#666" }}>Comprehensive overview of your business performance</p>
-//         </Col>
-//         <Col span={6} style={{ textAlign: "right" }}>
-//           <Button
-//             type="primary"
-//             icon={<DownloadOutlined />}
-//             onClick={handleDownloadPDF}
-//             style={{ marginRight: 8, backgroundColor: "#1a3353" }}
-//           >
-//             Download PDF
-//           </Button>
-//           <Button
-//             type="default"
-//             icon={<PrinterOutlined />}
-//             onClick={handlePrint}
-//           >
-//             Print
-//           </Button>
-//         </Col>
-//       </Row>
-
-//       {/* Filters */}
-//       <Card style={{ marginBottom: 20, backgroundColor: "#fff", borderRadius: 8 }}>
-//         <Row gutter={16} align="middle">
-//           <Col span={8}>
-//             <DatePicker.RangePicker
-//               value={dateRange}
-//               onChange={handleDateRangeChange}
-//               style={{ width: "100%" }}
-//               format="YYYY-MM-DD"
-//             />
-//           </Col>
-//           <Col>
-//             <Button 
-//               type="primary" 
-//               onClick={handleSearch} 
-//               icon={<BsSearch />}
-//               loading={isLoading}
-//             >
-//               Filter
-//             </Button>
-//           </Col>
-//         </Row>
-//       </Card>
-
-//       {/* Dashboard Content */}
-//       <div id="dashboard-content" ref={dashboardRef}>
-//         {/* Summary Cards */}
-//         <Row gutter={[16, 16]}>
-//           {dashboard.map((item, index) => (
-//             <Col xs={24} sm={12} md={8} lg={8} xl={8} key={index}>
-//               <Card 
-//                 style={{ 
-//                   height: 200, 
-//                   borderRadius: 8,
-//                   background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}33, ${COLORS[index % COLORS.length]}22)`,
-//                   border: `1px solid ${COLORS[index % COLORS.length]}44`
-//                 }}
-//                 title={
-//                   <div style={{ display: "flex", alignItems: "center" }}>
-//                     {index === 0 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 1 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 2 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 3 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 4 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     <span style={{ color: "#1a3353" }}>{item.title}</span>
-//                   </div>
-//                 }
-//               >
-//                 <div style={{ display: "flex", flexDirection: "column", height: "calc(100% - 40px)" }}>
-//                   {Object.entries(item.Summary).map(([key, value], idx) => (
-//                     <div key={idx} style={{ marginBottom: 10 }}>
-//                       <Row>
-//                         <Col span={12}>
-//                           <span style={{ color: "#666" }}>{key}:</span>
-//                         </Col>
-//                         <Col span={12} style={{ textAlign: "right" }}>
-//                           <span style={{ fontSize: idx === 0 ? 18 : 16, fontWeight: idx === 0 ? "bold" : "normal" }}>
-//                             {value}
-//                           </span>
-//                         </Col>
-//                       </Row>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </Card>
-//             </Col>
-//           ))}
-//         </Row>
-
-//         {/* Charts Section */}
-//         <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-//           {/* Combined Sales and Expenses Chart */}
-//           <Col span={24}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <BarChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span>Sales & Expenses Overview</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <BarChart data={combinedChartData}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="month" />
-//                   <YAxis />
-//                   <Tooltip formatter={tooltipFormatter} />
-//                   <Legend />
-//                   <Bar dataKey="sale" name="Sales" fill="#0088FE" />
-//                   <Bar dataKey="expense" name="Expenses" fill="#FF8042" />
-//                   <Bar dataKey="profit" name="Profit" fill="#00C49F" />
-//                 </BarChart>
-//               </ResponsiveContainer>
-//             </Card>
-//           </Col>
-//         </Row>
-
-//         <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-//           {/* Sales Trend Line Chart */}
-//           <Col xs={24} lg={12}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span>Sales Trend</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <LineChart data={saleByMonth}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="month" />
-//                   <YAxis />
-//                   <Tooltip formatter={tooltipFormatter} />
-//                   <Legend />
-//                   <Line type="monotone" dataKey="sale" stroke="#8884d8" activeDot={{ r: 8 }} />
-//                 </LineChart>
-//               </ResponsiveContainer>
-//             </Card>
-//           </Col>
-
-//           {/* Expense Trend Line Chart */}
-//           <Col xs={24} lg={12}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span>Expense Trend</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               <ResponsiveContainer width="100%" height={300}>
-//                 <LineChart data={expenseByMonth}>
-//                   <CartesianGrid strokeDasharray="3 3" />
-//                   <XAxis dataKey="month" />
-//                   <YAxis />
-//                   <Tooltip formatter={tooltipFormatter} />
-//                   <Legend />
-//                   <Line type="monotone" dataKey="expense" stroke="#82ca9d" activeDot={{ r: 8 }} />
-//                 </LineChart>
-//               </ResponsiveContainer>
-//             </Card>
-//           </Col>
-//         </Row>
-//       </div>
-
-//       <style jsx>{`
-//         @media print {
-//           body {
-//             -webkit-print-color-adjust: exact !important;
-//             print-color-adjust: exact !important;
-//           }
-//           .home-page {
-//             padding: 0 !important;
-//             background-color: white !important;
-//           }
-//         }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-// export default HomePage;
-
-
-// import { useEffect, useState, useRef } from "react";
-// import { request } from "../../util/helper";
-// import { Button, Card, Row, Col, Statistic, Divider, Select, DatePicker, Empty } from "antd";
-// import { DownloadOutlined, PrinterOutlined, BarChartOutlined, LineChartOutlined, PieChartOutlined, UserOutlined, DollarOutlined } from "@ant-design/icons";
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line, CartesianGrid, PieChart, Pie, Cell } from "recharts";
-// import html2canvas from "html2canvas";
-// import jsPDF from "jspdf";
-// import moment from "moment";
-// import { BsSearch } from "react-icons/bs";
-
-// const { RangePicker } = DatePicker;
-// const { Option } = Select;
-
-// function HomePage() {
-//   const [dashboard, setDashboard] = useState([]);
-//   const [saleByMonth, setSaleByMonth] = useState([]);
-//   const [expenseByMonth, setExpenseByMonth] = useState([]);
-//   const [dateRange, setDateRange] = useState([moment().startOf('year'), moment()]);
-//   const [categoryId, setCategoryId] = useState(null);
-//   const [expenseTypeId, setExpenseTypeId] = useState(null);
-//   const [supplierId, setSupplierId] = useState(null);
-//   const [topSales, setTopSales] = useState([]);
-//   const [customerData, setCustomerData] = useState([]);
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   const dashboardRef = useRef(null);
-
-//   // Colors for charts
-//   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-//   useEffect(() => {
-//     // Initial data load
-//     getList();
-//   }, []); // Empty dependency array for initial load only
-
-//   // Format numbers with commas for thousands
-//   const formatNumber = (value) => {
-//     if (typeof value === 'number') {
-//       return value.toLocaleString();
-//     } else if (typeof value === 'string' && !isNaN(value)) {
-//       return Number(value).toLocaleString();
-//     }
-//     return value;
-//   };
-
-//   // Fetch all data with date filters
-//   const fetchAllData = () => {
-//     getList();
-//     fetchTopSales();
-//     fetchReports();
-//   };
-
-//   const getList = async () => {
-//     setIsLoading(true);
-//     try {
-//       let apiUrl = 'dashbaord';
-
-//       // Only add date parameters if dateRange is not null
-//       if (dateRange && dateRange[0] && dateRange[1]) {
-//         const [fromDate, toDate] = dateRange;
-//         const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//         const formattedToDate = toDate.format('YYYY-MM-DD');
-//         apiUrl += `?from_date=${formattedFromDate}&to_date=${formattedToDate}`;
-//       }
-
-//       // Update API call with or without date parameters
-//       const res = await request(apiUrl, "get");
-//       if (res && !res.error) {
-//         setDashboard(res.dashboard);
-
-//         if (res.Sale_Summary_By_Month) {
-//           const saleData = res.Sale_Summary_By_Month.map(item => ({
-//             month: item.title,
-//             sale: Number(item.total) || 0
-//           }));
-//           setSaleByMonth(saleData);
-//         }
-
-//         if (res.Expense_Summary_By_Month) {
-//           const expenseData = res.Expense_Summary_By_Month.map(item => ({
-//             month: item.title,
-//             expense: Number(item.total) || 0
-//           }));
-//           setExpenseByMonth(expenseData);
-//         }
-//       }
-//     } catch (error) {
-//       console.error("Error fetching dashboard data:", error);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const fetchTopSales = async () => {
-//     try {
-//       let apiUrl = 'report/top_sale';
-
-//       // Only add date parameters if dateRange is not null
-//       if (dateRange && dateRange[0] && dateRange[1]) {
-//         const [fromDate, toDate] = dateRange;
-//         const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//         const formattedToDate = toDate.format('YYYY-MM-DD');
-//         apiUrl += `?from_date=${formattedFromDate}&to_date=${formattedToDate}`;
-//       }
-
-//       // Update API call with or without date parameters
-//       const res = await request(apiUrl, "get");
-//       if (res && res.list) {
-//         // Transform for pie chart
-//         const topProducts = res.list.map(item => ({
-//           name: item.product_name,
-//           value: Number(item.total_sale_amount),
-//           category: item.category_name
-//         }));
-//         setTopSales(topProducts);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching top sales data:", error);
-//     }
-//   };
-
-//   const fetchReports = async () => {
-//     try {
-//       let apiUrl = 'report/customer';
-
-//       // Only add date parameters if dateRange is not null
-//       if (dateRange && dateRange[0] && dateRange[1]) {
-//         const [fromDate, toDate] = dateRange;
-//         const formattedFromDate = fromDate.format('YYYY-MM-DD');
-//         const formattedToDate = toDate.format('YYYY-MM-DD');
-//         apiUrl += `?from_date=${formattedFromDate}&to_date=${formattedToDate}`;
-//       }
-
-//       // Fetch customer data with or without date filters
-//       const customerRes = await request(apiUrl, "get");
-//       if (customerRes && customerRes.list) {
-//         setCustomerData(customerRes.list.map(item => ({
-//           date: item.title,
-//           count: Number(item.total_amount)
-//         })));
-//       }
-//     } catch (error) {
-//       console.error("Error fetching report data:", error);
-//     }
-//   };
-
-//   const handlePrint = () => {
-//     const printContent = document.getElementById("dashboard-content");
-//     const originalContents = document.body.innerHTML;
-//     document.body.innerHTML = printContent.innerHTML;
-//     window.print();
-//     document.body.innerHTML = originalContents;
-//     window.location.reload();
-//   };
-
-//   const handleDownloadPDF = () => {
-//     const input = document.getElementById("dashboard-content");
-//     html2canvas(input, { scale: 2 }).then((canvas) => {
-//       const imgData = canvas.toDataURL("image/png");
-//       const pdf = new jsPDF("landscape");
-//       const imgWidth = 280;
-//       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-//       pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-//       pdf.save("dashboard.pdf");
-//     });
-//   };
-
-//   const handleDateRangeChange = (dates) => {
-//     setDateRange(dates); // This can be null when clearing
-//   };
-
-//   // Handler for the search/filter button
-//   const handleSearch = () => {
-//     fetchAllData();
-//   };
-
-//   // Custom tooltip formatter for charts
-//   const tooltipFormatter = (value) => {
-//     return [`$${value.toLocaleString()}`, "Amount"];
-//   };
-
-//   // Combined chart data
-//   const combinedChartData = saleByMonth.map(sale => {
-//     const expenseEntry = expenseByMonth.find(exp => exp.month === sale.month);
-//     return {
-//       month: sale.month,
-//       sale: sale.sale,
-//       expense: expenseEntry ? expenseEntry.expense : 0,
-//       profit: sale.sale - (expenseEntry ? expenseEntry.expense : 0)
-//     };
-//   });
-
-//   return (
-//     <div className="home-page" style={{ padding: "20px", backgroundColor: "#f0f2f5" }}>
-//       {/* Dashboard Header */}
-//       <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-//         <Col span={18}>
-//                     <h1 style={{ fontSize: 28, margin: 0, color: "#1a3353", fontFamily: "Khmer OS" ,fontWeight:"bold"}}>
-//             ផ្ទាំងគ្រប់គ្រងអាជីវកម្ម
-//           </h1>
-//           <p style={{ color: "#666", fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-//             ទិដ្ឋភាពទូលំទូលាយនៃដំណើរការអាជីវកម្មរបស់អ្នក
-//           </p>
-//         </Col>
-//         <Col span={6} style={{ textAlign: "right" }}>
-//           <Button
-//             type="primary"
-//             icon={<DownloadOutlined />}
-//             onClick={handleDownloadPDF}
-//             style={{ marginRight: 8, backgroundColor: "#1a3353" }}
-//           >
-//             <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-//               ទាញយក PDF
-//             </span>
-//           </Button>
-//           <Button
-//             type="default"
-//             icon={<PrinterOutlined />}
-//             onClick={handlePrint}
-//           >
-//             <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-//               បោះពុម្ព
-//             </span>
-//           </Button>
-//         </Col>
-//       </Row>
-
-//       {/* Filters */}
-//       <Card style={{ marginBottom: 20, backgroundColor: "#fff", borderRadius: 8 }}>
-//         <Row gutter={16} align="middle">
-//           <Col span={8}>
-//             <DatePicker.RangePicker
-//               value={dateRange}
-//               onChange={handleDateRangeChange}
-//               style={{ width: "100%" }}
-//               format="YYYY-MM-DD"
-//               allowClear={true}
-//             />
-//           </Col>
-//           <Col>
-//             <Button 
-//               type="primary" 
-//               onClick={handleSearch} 
-//               icon={<BsSearch />}
-//               loading={isLoading}
-//             >
-//               <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-//                 ស្វែងរក
-//               </span>
-//             </Button>
-//           </Col>
-//         </Row>
-//       </Card>
-
-//       {/* Dashboard Content */}
-//       <div id="dashboard-content" ref={dashboardRef}>
-//         {/* Summary Cards */}
-//         <Row gutter={[16, 16]}>
-//           {dashboard.length > 0 ? dashboard.map((item, index) => (
-//             <Col xs={24} sm={12} md={8} lg={8} xl={8} key={index}>
-//               <Card 
-//                 style={{ 
-//                   height: 200, 
-//                   borderRadius: 8,
-//                   background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}33, ${COLORS[index % COLORS.length]}22)`,
-//                   border: `1px solid ${COLORS[index % COLORS.length]}44`
-//                 }}
-//                 title={
-//                   <div style={{ display: "flex", alignItems: "center" }}>
-//                     {index === 0 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 1 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 2 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 3 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     {index === 4 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-//                     <span style={{ 
-//                       color: "#1a3353", 
-//                       fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-//                       fontWeight: "bold"
-//                     }}>{item.title}</span>
-//                   </div>
-//                 }
-//               >
-//                 <div style={{ display: "flex", flexDirection: "column", height: "calc(100% - 40px)" }}>
-//                   {Object.entries(item.Summary).map(([key, value], idx) => (
-//                     <div key={idx} style={{ marginBottom: 10 }}>
-//                       <Row>
-//                         <Col span={12}>
-//                           <span style={{ 
-//                             color: "#666",
-//                             fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-//                           }}>{key}:</span>
-//                         </Col>
-//                         <Col span={12} style={{ textAlign: "right" }}>
-//                           <span style={{ 
-//                             fontSize: idx === 0 ? 18 : 16, 
-//                             fontWeight: idx === 0 ? "bold" : "normal" 
-//                           }}>
-//                             {formatNumber(value)}
-//                           </span>
-//                         </Col>
-//                       </Row>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </Card>
-//             </Col>
-//           )) : (
-//             <Col span={24}>
-//               <Empty 
-//                 description={
-//                   <span style={{ 
-//                     fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-//                   }}>
-//                     មិនមានទិន្នន័យ
-//                   </span>
-//                 } 
-//               />
-//             </Col>
-//           )}
-//         </Row>
-
-//         {/* Charts Section */}
-//         <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-//           {/* Combined Sales and Expenses Chart */}
-//           <Col span={24}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <BarChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span style={{ 
-//                     fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-//                     fontWeight: "bold" 
-//                   }}>ទិដ្ឋភាពនៃការលក់និងចំណាយ</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               {combinedChartData.length > 0 ? (
-//                 <ResponsiveContainer width="100%" height={300}>
-//                   <BarChart data={combinedChartData}>
-//                     <CartesianGrid strokeDasharray="3 3" />
-//                     <XAxis dataKey="month" />
-//                     <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-//                     <Tooltip formatter={tooltipFormatter} />
-//                     <Legend />
-//                     <Bar dataKey="sale" name="ការលក់" fill="#0088FE" />
-//                     <Bar dataKey="expense" name="ចំណាយ" fill="#FF8042" />
-//                     <Bar dataKey="profit" name="ប្រាក់ចំណេញ" fill="#00C49F" />
-//                   </BarChart>
-//                 </ResponsiveContainer>
-//               ) : (
-//                 <Empty 
-//                   description={
-//                     <span style={{ 
-//                       fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-//                     }}>
-//                       មិនមានទិន្នន័យ
-//                     </span>
-//                   } 
-//                 />
-//               )}
-//             </Card>
-//           </Col>
-//         </Row>
-
-//         <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-//           {/* Sales Trend Line Chart */}
-//           <Col xs={24} lg={12}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span style={{ 
-//                     fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-//                     fontWeight: "bold" 
-//                   }}>និន្នាការលក់</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               {saleByMonth.length > 0 ? (
-//                 <ResponsiveContainer width="100%" height={300}>
-//                   <LineChart data={saleByMonth}>
-//                     <CartesianGrid strokeDasharray="3 3" />
-//                     <XAxis dataKey="month" />
-//                     <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-//                     <Tooltip formatter={tooltipFormatter} />
-//                     <Legend />
-//                     <Line type="monotone" dataKey="sale" name="ការលក់" stroke="#8884d8" activeDot={{ r: 8 }} />
-//                   </LineChart>
-//                 </ResponsiveContainer>
-//               ) : (
-//                 <Empty 
-//                   description={
-//                     <span style={{ 
-//                       fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-//                     }}>
-//                       មិនមានទិន្នន័យ
-//                     </span>
-//                   } 
-//                 />
-//               )}
-//             </Card>
-//           </Col>
-
-//           {/* Expense Trend Line Chart */}
-//           <Col xs={24} lg={12}>
-//             <Card 
-//               title={
-//                 <div style={{ display: "flex", alignItems: "center" }}>
-//                   <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-//                   <span style={{ 
-//                     fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-//                     fontWeight: "bold" 
-//                   }}>និន្នាការចំណាយ</span>
-//                 </div>
-//               }
-//               style={{ borderRadius: 8 }}
-//             >
-//               {expenseByMonth.length > 0 ? (
-//                 <ResponsiveContainer width="100%" height={300}>
-//                   <LineChart data={expenseByMonth}>
-//                     <CartesianGrid strokeDasharray="3 3" />
-//                     <XAxis dataKey="month" />
-//                     <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-//                     <Tooltip formatter={tooltipFormatter} />
-//                     <Legend />
-//                     <Line type="monotone" dataKey="expense" name="ចំណាយ" stroke="#82ca9d" activeDot={{ r: 8 }} />
-//                   </LineChart>
-//                 </ResponsiveContainer>
-//               ) : (
-//                 <Empty 
-//                   description={
-//                     <span style={{ 
-//                       fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-//                     }}>
-//                       មិនមានទិន្នន័យ
-//                     </span>
-//                   } 
-//                 />
-//               )}
-//             </Card>
-//           </Col>
-//         </Row>
-//       </div>
-
-//       <style jsx>{`
-//         @media print {
-//           body {
-//             -webkit-print-color-adjust: exact !important;
-//             print-color-adjust: exact !important;
-//           }
-//           .home-page {
-//             padding: 0 !important;
-//             background-color: white !important;
-//           }
-//         }
-
-//         /* Add Khmer font import - make sure these fonts are available */
-//         @font-face {
-//           font-family: 'Khmer OS';
-//           src: url('/fonts/KhmerOS.ttf') format('truetype');
-//           font-weight: normal;
-//           font-style: normal;
-//         }
-
-//         @font-face {
-//           font-family: 'Khmer OS System';
-//           src: url('/fonts/KhmerOSsys.ttf') format('truetype');
-//           font-weight: normal;
-//           font-style: normal;
-//         }
-
-//         @font-face {
-//           font-family: 'Khmer OS Battambang';
-//           src: url('/fonts/KhmerOSbattambang.ttf') format('truetype');
-//           font-weight: normal;
-//           font-style: normal;
-//         }
-//       `}</style>
-//     </div>
-//   );
-// }
-
-// export default HomePage;
-
-
-
-
-
-
 import React, { useEffect, useState, useRef } from "react";
 import { request } from "../../util/helper";
-import { Button, Card, Row, Col, Statistic, Divider, Select, DatePicker, Empty, Dropdown, Menu, message } from "antd";
-import { DownloadOutlined, PrinterOutlined, BarChartOutlined, LineChartOutlined, PieChartOutlined, UserOutlined, DollarOutlined, MoreOutlined } from "@ant-design/icons";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line, CartesianGrid, PieChart, Pie, Cell } from "recharts";
+import { Button, Card, Row, Col, Statistic, Divider, Select, DatePicker, Empty, Dropdown, Menu, message, Badge, Avatar, Progress, Typography } from "antd";
+import {
+  DownloadOutlined,
+  PrinterOutlined,
+  BarChartOutlined,
+  LineChartOutlined,
+  PieChartOutlined,
+  UserOutlined,
+  DollarOutlined,
+  MoreOutlined,
+  TeamOutlined,
+  ShoppingCartOutlined,
+  WalletOutlined,
+  ShopOutlined,
+  RiseOutlined,
+  FallOutlined,
+  FilterOutlined,
+  EyeOutlined
+} from "@ant-design/icons";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  RadialBarChart,
+  RadialBar
+} from "recharts";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import moment from "moment";
-import { BsSearch } from "react-icons/bs";
+import CustomerList from "../NewCustomer/CustomerList";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+const { Title, Text } = Typography;
 
 function HomePage() {
   const [dashboard, setDashboard] = useState([]);
@@ -1580,32 +56,65 @@ function HomePage() {
   const [expenseTypeId, setExpenseTypeId] = useState(null);
   const [supplierId, setSupplierId] = useState(null);
   const [topSales, setTopSales] = useState([]);
+
   const [customerData, setCustomerData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // grid or detailed
 
   const dashboardRef = useRef(null);
   const cardRefs = useRef([]);
   const chartRefs = useRef({
     combinedChart: useRef(null),
     salesTrendChart: useRef(null),
-    expenseTrendChart: useRef(null)
+    expenseTrendChart: useRef(null),
+    profitChart: useRef(null)
   });
 
-  // Initialize refs for cards
+  const COLORS = [
+    '#667eea',
+    '#764ba2',
+    '#f093fb',
+    '#f5576c',
+    '#4facfe',
+    '#43e97b',
+    '#fa709a',
+    '#fee140'
+  ];
+
+  const GRADIENT_COLORS = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+    'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+  ];
+
+  const getCardIcon = (index) => {
+    const icons = [
+      <TeamOutlined style={{ fontSize: 32, color: 'white' }} />,
+      <UserOutlined style={{ fontSize: 32, color: 'white' }} />,
+      <TeamOutlined style={{ fontSize: 32, color: 'white' }} />,
+      <ShopOutlined style={{ fontSize: 32, color: 'white' }} />,
+      <WalletOutlined style={{ fontSize: 32, color: 'white' }} />,
+      <ShoppingCartOutlined style={{ fontSize: 32, color: 'white' }} />,
+      <RiseOutlined style={{ fontSize: 32, color: 'white' }} />
+    ];
+    return icons[index % icons.length];
+  };
+
   useEffect(() => {
     cardRefs.current = Array(dashboard.length).fill().map((_, i) => cardRefs.current[i] || React.createRef());
   }, [dashboard]);
 
-  // Colors for charts
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-
-  // Set up keyboard shortcut for Ctrl+3
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key === '3') {
         message.info('ជ្រើសរើសផ្ទាំងដែលត្រូវការបោះពុម្ព ឬទាញយក PDF', 2);
-        setSelectedCardIndex(0); // Select first card by default
+        setSelectedCardIndex(0);
       }
     };
 
@@ -1616,24 +125,17 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Initial data load
     getList();
-  }, []); // Empty dependency array for initial load only
+  }, []);
 
-  // Format numbers with commas for thousands separator
   const formatNumber = (value) => {
     if (value === null || value === undefined) return '';
 
-    // If the value already contains a currency symbol or is formatted
     if (typeof value === 'string') {
-      // Check if it's already formatted properly
       if (value.includes(',')) return value;
-
-      // Extract number from string that might contain "$" or other characters
       const numericValue = value.replace(/[^\d.-]/g, '');
       if (!isNaN(numericValue) && numericValue !== '') {
         const formattedNum = Number(numericValue).toLocaleString();
-        // If original value had dollar sign, keep it
         if (value.includes('$')) {
           return formattedNum + ' $';
         }
@@ -1642,7 +144,6 @@ function HomePage() {
       return value;
     }
 
-    // For numeric values
     if (typeof value === 'number') {
       return value.toLocaleString();
     }
@@ -1650,7 +151,6 @@ function HomePage() {
     return value;
   };
 
-  // Process dashboard data to ensure all numeric values are properly formatted
   const processDashboardData = (data) => {
     if (!data || !Array.isArray(data)) return [];
 
@@ -1659,7 +159,6 @@ function HomePage() {
 
       if (item.Summary) {
         Object.entries(item.Summary).forEach(([key, value]) => {
-          // Format only if it's a number or contains a number
           processedSummary[key] = formatNumber(value);
         });
       }
@@ -1671,19 +170,27 @@ function HomePage() {
     });
   };
 
-  // Fetch all data with date filters
-  const fetchAllData = () => {
-    getList();
-    fetchTopSales();
-    fetchReports();
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        getList(),
+      ]);
+    } catch (error) {
+      console.error("Error fetching all data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+
+  // In your getList function, add this code after setting the dashboard data:
 
   const getList = async () => {
     setIsLoading(true);
     try {
       let apiUrl = 'dashbaord';
 
-      // Only add date parameters if dateRange is not null
       if (dateRange && dateRange[0] && dateRange[1]) {
         const [fromDate, toDate] = dateRange;
         const formattedFromDate = fromDate.format('YYYY-MM-DD');
@@ -1691,10 +198,8 @@ function HomePage() {
         apiUrl += `?from_date=${formattedFromDate}&to_date=${formattedToDate}`;
       }
 
-      // Update API call with or without date parameters
       const res = await request(apiUrl, "get");
       if (res && !res.error) {
-        // Process dashboard data to ensure proper formatting
         setDashboard(processDashboardData(res.dashboard));
 
         if (res.Sale_Summary_By_Month) {
@@ -1712,6 +217,16 @@ function HomePage() {
           }));
           setExpenseByMonth(expenseData);
         }
+
+        if (res.Top_Sale && Array.isArray(res.Top_Sale)) {
+          const topSalesData = res.Top_Sale.slice(0, 5).map(item => ({
+            name: ` (${item.category_name})`,
+            value: Number(item.total_sale_amount) || 0,
+            qty: Number(item.total_qty) || 0
+          }));
+          setTopSales(topSalesData);
+        }
+
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -1720,60 +235,7 @@ function HomePage() {
     }
   };
 
-  const fetchTopSales = async () => {
-    try {
-      let apiUrl = 'report/top_sale';
 
-      // Only add date parameters if dateRange is not null
-      if (dateRange && dateRange[0] && dateRange[1]) {
-        const [fromDate, toDate] = dateRange;
-        const formattedFromDate = fromDate.format('YYYY-MM-DD');
-        const formattedToDate = toDate.format('YYYY-MM-DD');
-        apiUrl += `?from_date=${formattedFromDate}&to_date=${formattedToDate}`;
-      }
-
-      // Update API call with or without date parameters
-      const res = await request(apiUrl, "get");
-      if (res && res.list) {
-        // Transform for pie chart
-        const topProducts = res.list.map(item => ({
-          name: item.product_name,
-          value: Number(item.total_sale_amount),
-          category: item.category_name
-        }));
-        setTopSales(topProducts);
-      }
-    } catch (error) {
-      console.error("Error fetching top sales data:", error);
-    }
-  };
-
-  const fetchReports = async () => {
-    try {
-      let apiUrl = 'report/customer';
-
-      // Only add date parameters if dateRange is not null
-      if (dateRange && dateRange[0] && dateRange[1]) {
-        const [fromDate, toDate] = dateRange;
-        const formattedFromDate = fromDate.format('YYYY-MM-DD');
-        const formattedToDate = toDate.format('YYYY-MM-DD');
-        apiUrl += `?from_date=${formattedFromDate}&to_date=${formattedToDate}`;
-      }
-
-      // Fetch customer data with or without date filters
-      const customerRes = await request(apiUrl, "get");
-      if (customerRes && customerRes.list) {
-        setCustomerData(customerRes.list.map(item => ({
-          date: item.title,
-          count: Number(item.total_amount)
-        })));
-      }
-    } catch (error) {
-      console.error("Error fetching report data:", error);
-    }
-  };
-
-  // Print the entire dashboard
   const handlePrintAll = () => {
     const printContent = document.getElementById("dashboard-content");
     const originalContents = document.body.innerHTML;
@@ -1783,7 +245,6 @@ function HomePage() {
     window.location.reload();
   };
 
-  // Download the entire dashboard as PDF
   const handleDownloadAllPDF = () => {
     const input = document.getElementById("dashboard-content");
     html2canvas(input, { scale: 2 }).then((canvas) => {
@@ -1796,7 +257,6 @@ function HomePage() {
     });
   };
 
-  // Print individual card or chart
   const handlePrintIndividual = (elementRef, title) => {
     if (!elementRef.current) return;
 
@@ -1817,6 +277,7 @@ function HomePage() {
                 margin: 0;
                 padding: 20px;
                 text-align: center;
+                font-family: 'Khmer OS', 'Khmer OS System', sans-serif;
               }
               img {
                 max-width: 100%;
@@ -1837,13 +298,10 @@ function HomePage() {
       `);
 
       printWindow.document.close();
-
-      // Print after the image loads
       const img = printWindow.document.querySelector('img');
       if (img) {
         img.onload = function () {
           printWindow.print();
-          // Close window after print dialog closes (setTimeout to give user time to cancel)
           setTimeout(() => {
             printWindow.close();
           }, 500);
@@ -1857,23 +315,17 @@ function HomePage() {
     });
   };
 
-  // Download individual card or chart as PDF
   const handleDownloadIndividualPDF = (elementRef, title) => {
     if (!elementRef.current) return;
 
     html2canvas(elementRef.current, { scale: 2 }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF();
-
-      // Calculate dimensions to fit the PDF page
-      const imgWidth = 190; // A4 page width (210mm) minus margins
+      const imgWidth = 190;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      // Add title
       pdf.setFontSize(16);
       pdf.text(title, 10, 10);
-
-      // Add image below title
       pdf.addImage(imgData, "PNG", 10, 20, imgWidth, imgHeight);
       pdf.save(`${title.replace(/\s+/g, '_')}.pdf`);
 
@@ -1882,20 +334,17 @@ function HomePage() {
   };
 
   const handleDateRangeChange = (dates) => {
-    setDateRange(dates); // This can be null when clearing
+    setDateRange(dates);
   };
 
-  // Handler for the search/filter button
   const handleSearch = () => {
     fetchAllData();
   };
 
-  // Custom tooltip formatter for charts
   const tooltipFormatter = (value) => {
     return [`$${value.toLocaleString()}`, "Amount"];
   };
 
-  // Combined chart data
   const combinedChartData = saleByMonth.map(sale => {
     const expenseEntry = expenseByMonth.find(exp => exp.month === sale.month);
     return {
@@ -1906,28 +355,23 @@ function HomePage() {
     };
   });
 
-  // Handle card selection
   const handleCardSelect = (index) => {
     setSelectedCardIndex(index);
     message.success(`បានជ្រើសរើសផ្ទាំង "${index >= 0 && index < dashboard.length ? dashboard[index].title : 'ក្រាហ្វិក'}"`, 1);
   };
 
-  // Handle chart selection
   const handleChartSelect = (chartType) => {
     setSelectedCardIndex(chartType);
     message.success(`បានជ្រើសរើសក្រាហ្វិក "${chartType}"`, 1);
   };
 
-  // Get the currently selected element reference
   const getSelectedElementRef = () => {
     if (selectedCardIndex === null) return null;
 
-    // For summary cards
     if (typeof selectedCardIndex === 'number' && selectedCardIndex >= 0 && selectedCardIndex < dashboard.length) {
       return cardRefs.current[selectedCardIndex];
     }
 
-    // For charts
     if (selectedCardIndex === 'combinedChart') return chartRefs.current.combinedChart;
     if (selectedCardIndex === 'salesTrendChart') return chartRefs.current.salesTrendChart;
     if (selectedCardIndex === 'expenseTrendChart') return chartRefs.current.expenseTrendChart;
@@ -1935,16 +379,13 @@ function HomePage() {
     return null;
   };
 
-  // Get the title of the selected element
   const getSelectedElementTitle = () => {
     if (selectedCardIndex === null) return "";
 
-    // For summary cards
     if (typeof selectedCardIndex === 'number' && selectedCardIndex >= 0 && selectedCardIndex < dashboard.length) {
       return dashboard[selectedCardIndex].title;
     }
 
-    // For charts
     if (selectedCardIndex === 'combinedChart') return "ទិដ្ឋភាពនៃការលក់និងចំណាយ";
     if (selectedCardIndex === 'salesTrendChart') return "និន្នាការលក់";
     if (selectedCardIndex === 'expenseTrendChart') return "និន្នាការចំណាយ";
@@ -1952,413 +393,1086 @@ function HomePage() {
     return "";
   };
 
+  // Calculate growth rates
+  const calculateGrowth = (current, previous) => {
+    if (!previous || previous === 0) return 0;
+    return ((current - previous) / previous * 100).toFixed(1);
+  };
+
   return (
-    <div className="home-page" style={{ padding: "20px", backgroundColor: "#f0f2f5" }}>
-      {/* Dashboard Header */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
-        <Col span={14}>
-          <h1 style={{ fontSize: 28, margin: 0, color: "#1a3353", fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-            ផ្ទាំងគ្រប់គ្រងអាជីវកម្ម
-          </h1>
-          <p style={{ color: "#666", fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-            ទិដ្ឋភាពទូលំទូលាយនៃដំណើរការអាជីវកម្មរបស់អ្នក
-          </p>
-        </Col>
-        <Col span={10} style={{ textAlign: "right" }}>
-          {/* Individual printing buttons (only shown when a card is selected) */}
-          {selectedCardIndex !== null && (
-            <>
-              <Button
-                type="primary"
-                icon={<DownloadOutlined />}
-                onClick={() => handleDownloadIndividualPDF(getSelectedElementRef(), getSelectedElementTitle())}
-                style={{ marginRight: 8, backgroundColor: "#1a3353" }}
-              >
-                <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                  ទាញយក PDF ជ្រើសរើស
-                </span>
-              </Button>
-              <Button
-                type="default"
-                icon={<PrinterOutlined />}
-                onClick={() => handlePrintIndividual(getSelectedElementRef(), getSelectedElementTitle())}
-                style={{ marginRight: 16 }}
-              >
-                <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                  បោះពុម្ពជ្រើសរើស
-                </span>
-              </Button>
-              <Button
-                type="dashed"
-                onClick={() => setSelectedCardIndex(null)}
-                style={{ marginRight: 8 }}
-              >
-                <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                  បិទការជ្រើសរើស
-                </span>
-              </Button>
-            </>
-          )}
-
-          {/* Regular buttons for all content */}
-          {selectedCardIndex === null && (
-            <>
-              <Button
-                type="primary"
-                icon={<DownloadOutlined />}
-                onClick={handleDownloadAllPDF}
-                style={{ marginRight: 8, backgroundColor: "#1a3353" }}
-              >
-                <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                  ទាញយក PDF
-                </span>
-              </Button>
-              <Button
-                type="default"
-                icon={<PrinterOutlined />}
-                onClick={handlePrintAll}
-              >
-                <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                  បោះពុម្ព
-                </span>
-              </Button>
-            </>
-          )}
-        </Col>
-      </Row>
-
-      {/* Keyboard shortcut instructions */}
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <p style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif", color: "#1a3353" }}>
-          ចុច Ctrl+3 ដើម្បីជ្រើសរើសផ្ទាំងមួយៗសម្រាប់ការបោះពុម្ព ឬទាញយក PDF
-        </p>
-      </div>
-
-      {/* Filters */}
-      <Card style={{ marginBottom: 20, backgroundColor: "#fff", borderRadius: 8 }}>
-        <Row gutter={16} align="middle">
-          <Col span={8}>
-            <DatePicker.RangePicker
-              value={dateRange}
-              onChange={handleDateRangeChange}
-              style={{ width: "100%" }}
-              format="YYYY-MM-DD"
-              allowClear={true}
-            />
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '0'
+    }}>
+      {/* Modern Header with Glass Effect */}
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+        padding: '24px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000
+      }}>
+        <Row gutter={[16, 16]} align="middle">
+          <Col span={16}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Avatar
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  marginRight: 16,
+                  width: 48,
+                  height: 48
+                }}
+                icon={<BarChartOutlined style={{ fontSize: 24, color: 'white' }} />}
+              />
+              <div>
+                <Title level={2} style={{
+                  color: 'white',
+                  margin: 0,
+                  fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                }}>
+                  ផ្ទាំងគ្រប់គ្រងអាជីវកម្ម
+                </Title>
+                <Text style={{
+                  color: 'rgba(255,255,255,0.8)',
+                  fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
+                }}>
+                  ទិដ្ឋភាពទូលំទូលាយនៃដំណើរការអាជីវកម្មរបស់អ្នក
+                </Text>
+              </div>
+            </div>
           </Col>
-          <Col>
-            <Button
-              type="primary"
-              onClick={handleSearch}
-              icon={<BsSearch />}
-              loading={isLoading}
-            >
-              <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                ស្វែងរក
-              </span>
-            </Button>
+          <Col span={8} style={{ textAlign: "right" }}>
+            {selectedCardIndex !== null ? (
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <Button
+                  type="primary"
+                  icon={<DownloadOutlined />}
+                  onClick={() => handleDownloadIndividualPDF(getSelectedElementRef(), getSelectedElementTitle())}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                    ទាញយក PDF
+                  </span>
+                </Button>
+                <Button
+                  type="default"
+                  icon={<PrinterOutlined />}
+                  onClick={() => handlePrintIndividual(getSelectedElementRef(), getSelectedElementTitle())}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: 'white'
+                  }}
+                >
+                  <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                    បោះពុម្ព
+                  </span>
+                </Button>
+                <Button
+                  type="dashed"
+                  onClick={() => setSelectedCardIndex(null)}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: 'white'
+                  }}
+                >
+                  <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                    បិទ
+                  </span>
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <Button
+                  type="primary"
+                  icon={<DownloadOutlined />}
+                  onClick={handleDownloadAllPDF}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                    ទាញយក PDF
+                  </span>
+                </Button>
+                <Button
+                  type="default"
+                  icon={<PrinterOutlined />}
+                  onClick={handlePrintAll}
+                  style={{
+                    background: 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: 'white'
+                  }}
+                >
+                  <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                    បោះពុម្ព
+                  </span>
+                </Button>
+              </div>
+            )}
           </Col>
         </Row>
-      </Card>
+      </div>
 
-      {/* Dashboard Content */}
-      <div id="dashboard-content" ref={dashboardRef}>
-        {/* Summary Cards */}
-        <Row gutter={[16, 16]}>
-          {dashboard.length > 0 ? dashboard.map((item, index) => (
-            <Col xs={24} sm={12} md={8} lg={8} xl={8} key={index}>
-              <Card
-                ref={cardRefs.current[index]}
+      <div style={{ padding: '24px' }}>
+        <Card style={{
+          marginBottom: 24,
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: 16,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+        }}>
+          <Row gutter={16} align="middle">
+            <Col span={2}>
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '12px',
+                padding: '12px',
+                textAlign: 'center'
+              }}>
+                <FilterOutlined style={{ color: 'white', fontSize: 20 }} />
+              </div>
+            </Col>
+            <Col span={8}>
+              <Text strong style={{
+                fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                color: '#1a3353',
+                display: 'block',
+                marginBottom: 8
+              }}>
+                ជ្រើសរើសកាលបរិច្ឆេទ
+              </Text>
+              <RangePicker
+                value={dateRange}
+                onChange={handleDateRangeChange}
+                style={{ width: "100%", borderRadius: 8 }}
+                format="YYYY-MM-DD"
+                allowClear={true}
+              />
+            </Col>
+            <Col span={6}>
+              <Text strong style={{
+                fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                color: '#1a3353',
+                display: 'block',
+                marginBottom: 8
+              }}>
+                របៀបមើល
+              </Text>
+              <Select
+                value={viewMode}
+                onChange={setViewMode}
+                style={{ width: "100%" }}
+              >
+                <Option value="grid">ទិដ្ឋភាពក្រឡា</Option>
+                <Option value="detailed">ទិដ្ឋភាពលម្អិត</Option>
+              </Select>
+            </Col>
+            <Col span={4}>
+              <Button
+                type="primary"
+                onClick={handleSearch}
+                icon={<EyeOutlined />}
+                loading={isLoading}
                 style={{
-                  height: 200,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none',
                   borderRadius: 8,
-                  background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}33, ${COLORS[index % COLORS.length]}22)`,
-                  border: selectedCardIndex === index ?
-                    `2px solid ${COLORS[index % COLORS.length]}` :
-                    `1px solid ${COLORS[index % COLORS.length]}44`,
-                  boxShadow: selectedCardIndex === index ? '0 0 10px rgba(0,0,0,0.2)' : 'none',
-                  position: 'relative'
+                  height: 40,
+                  width: '100%',
+                  marginTop: 24
                 }}
-                title={
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {index === 0 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-                      {index === 1 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-                      {index === 2 && <UserOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-                      {index === 3 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-                      {index === 4 && <DollarOutlined style={{ marginRight: 8, fontSize: 20, color: COLORS[index % COLORS.length] }} />}
-                      <span style={{
-                        color: "#1a3353",
-                        fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-                        fontWeight: "bold"
-                      }}>{item.title}</span>
+              >
+                <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                  មើលទិន្នន័យ
+                </span>
+              </Button>
+            </Col>
+            <Col span={4}>
+              <Text style={{
+                fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                color: '#666',
+                fontSize: 12,
+                marginTop: 24,
+                display: 'block'
+              }}>
+                Ctrl+3 ជ្រើសរើស
+              </Text>
+            </Col>
+          </Row>
+        </Card>
+
+        <div id="dashboard-content" ref={dashboardRef}>
+          <Row gutter={[24, 24]}>
+            {dashboard.length > 0 ? dashboard.map((item, index) => (
+              <Col xs={24} sm={12} md={8} lg={8} xl={8} key={index}>
+                <Card
+                  ref={cardRefs.current[index]}
+                  hoverable
+                  style={{
+                    height: viewMode === 'detailed' ? 320 : 280,
+                    borderRadius: 16,
+                    background: 'white',
+                    border: selectedCardIndex === index ?
+                      `2px solid ${COLORS[index % COLORS.length]}` :
+                      '1px solid #f0f0f0',
+                    boxShadow: selectedCardIndex === index ?
+                      `0 8px 30px rgba(102, 126, 234, 0.2)` :
+                      '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    cursor: 'pointer',
+                    transform: selectedCardIndex === index ? 'translateY(-2px)' : 'none',
+                    transition: 'all 0.3s ease',
+                    overflow: 'hidden'
+                  }}
+                  onClick={() => handleCardSelect(index)}
+                  title={null}
+                  bodyStyle={{ padding: 0 }}
+                >
+                  {/* Header Section */}
+                  <div style={{
+                    padding: '24px 20px 16px 20px',
+                    borderBottom: '1px solid #f5f5f5'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: 8
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <Title level={3} style={{
+                          color: '#1a1a1a',
+                          margin: 0,
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 24,
+                          fontWeight: '600',
+                          lineHeight: 1.2
+                        }}>
+                          {Object.values(item.Summary)[0] || '350'}
+                        </Title>
+                        <Title level={5} style={{
+                          color: COLORS[index % COLORS.length],
+                          margin: '4px 0 0 0',
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 14,
+                          fontWeight: '500',
+                          textTransform: 'capitalize'
+                        }}>
+                          {item.title}
+                        </Title>
+                      </div>
+
+                      <div style={{
+                        background: `${COLORS[index % COLORS.length]}15`,
+                        borderRadius: '12px',
+                        padding: '10px',
+                        marginLeft: 12
+                      }}>
+                        {getCardIcon(index)}
+                      </div>
                     </div>
+
+                    <Text style={{
+                      color: '#666',
+                      fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                      fontSize: 13,
+                      lineHeight: 1.4
+                    }}>
+                      Total number of {item.title.toLowerCase()} that come in.
+                    </Text>
+                  </div>
+
+                  {/* Wave Chart Area */}
+                  <div style={{
+                    position: 'relative',
+                    height: 120,
+                    background: `linear-gradient(135deg, ${COLORS[index % COLORS.length]}08, ${COLORS[index % COLORS.length]}03)`,
+                    overflow: 'hidden'
+                  }}>
+                    {/* Wave SVG */}
+                    <svg
+                      width="100%"
+                      height="120"
+                      style={{ position: 'absolute', top: 0, left: 0 }}
+                      viewBox="0 0 400 120"
+                      preserveAspectRatio="none"
+                    >
+                      <defs>
+                        <linearGradient id={`waveGradient${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor={COLORS[index % COLORS.length]} stopOpacity="0.3" />
+                          <stop offset="100%" stopColor={COLORS[index % COLORS.length]} stopOpacity="0.1" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d="M0,60 Q100,40 200,50 T400,45 L400,120 L0,120 Z"
+                        fill={`url(#waveGradient${index})`}
+                      />
+                      <path
+                        d="M0,60 Q100,40 200,50 T400,45"
+                        stroke={COLORS[index % COLORS.length]}
+                        strokeWidth="2"
+                        fill="none"
+                        opacity="0.8"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Bottom Stats Section */}
+                  <div style={{
+                    padding: '16px 20px',
+                    background: `${COLORS[index % COLORS.length]}05`
+                  }}>
+                    {Object.entries(item.Summary).slice(1).length > 0 ? (
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-around',
+                        alignItems: 'center'
+                      }}>
+                        {Object.entries(item.Summary).slice(1, 4).map(([key, value], idx) => (
+                          <div key={idx} style={{ textAlign: 'center', flex: 1 }}>
+                            <Text style={{
+                              fontSize: 18,
+                              fontWeight: '700',
+                              color: COLORS[index % COLORS.length],
+                              display: 'block',
+                              fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
+                              lineHeight: 1
+                            }}>
+                              {value}
+                            </Text>
+                            <Text style={{
+                              color: '#666',
+                              fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                              fontSize: 12,
+                              fontWeight: '500',
+                              marginTop: 2,
+                              textTransform: 'capitalize'
+                            }}>
+                              {key}
+                            </Text>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                        <Text style={{
+                          color: '#999',
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 13
+                        }}>
+                          No additional data available
+                        </Text>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Menu */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    zIndex: 10,
+                  }}>
                     <Dropdown
                       overlay={
                         <Menu>
-                          <Menu.Item key="select" onClick={() => handleCardSelect(index)}>
-                            <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                          <Menu.Item
+                            key="select"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCardSelect(index);
+                            }}
+                          >
+                            <span style={{
+                              fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                            }}>
                               ជ្រើសរើសដើម្បីបោះពុម្ព
                             </span>
                           </Menu.Item>
-                          <Menu.Item key="print" onClick={() => handlePrintIndividual(cardRefs.current[index], item.title)}>
-                            <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                          <Menu.Item
+                            key="print"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePrintIndividual(cardRefs.current[index], item.title);
+                            }}
+                          >
+                            <span style={{
+                              fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                            }}>
                               បោះពុម្ព
                             </span>
                           </Menu.Item>
-                          <Menu.Item key="pdf" onClick={() => handleDownloadIndividualPDF(cardRefs.current[index], item.title)}>
-                            <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                          <Menu.Item
+                            key="pdf"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadIndividualPDF(cardRefs.current[index], item.title);
+                            }}
+                          >
+                            <span style={{
+                              fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                            }}>
                               ទាញយក PDF
                             </span>
                           </Menu.Item>
                         </Menu>
                       }
                       trigger={['click']}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Button type="text" icon={<MoreOutlined />} />
+                      <Button
+                        type="text"
+                        icon={<MoreOutlined />}
+                        style={{
+                          color: '#666',
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          border: '1px solid #f0f0f0',
+                          borderRadius: '8px',
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     </Dropdown>
+                  </div>
+
+                  {/* Selection Indicator */}
+                  {selectedCardIndex === index && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 12,
+                      left: 12,
+                      background: COLORS[index % COLORS.length],
+                      borderRadius: '50%',
+                      width: 24,
+                      height: 24,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    }}>
+                      <Text style={{
+                        color: 'white',
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        lineHeight: 1
+                      }}>
+                        ✓
+                      </Text>
+                    </div>
+                  )}
+                </Card>
+              </Col>
+            )) : (
+              <Col span={24}>
+                <Card style={{
+                  background: 'white',
+                  border: '1px solid #f0f0f0',
+                  borderRadius: 16,
+                  textAlign: 'center',
+                  padding: 40,
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+                }}>
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={
+                      <span style={{
+                        fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                        color: '#666'
+                      }}>
+                        មិនមានទិន្នន័យ
+                      </span>
+                    }
+                  />
+                </Card>
+              </Col>
+            )}
+          </Row>
+
+          <Row gutter={[24, 24]} style={{ marginTop: 32 }}>
+            <Col span={24}>
+              <Card
+                ref={chartRefs.current.combinedChart}
+                hoverable
+                style={{
+                  borderRadius: 20,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: selectedCardIndex === 'combinedChart' ?
+                    '2px solid #667eea' :
+                    '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: selectedCardIndex === 'combinedChart' ?
+                    '0 12px 40px rgba(102, 126, 234, 0.3)' :
+                    '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  cursor: 'pointer',
+                  transform: selectedCardIndex === 'combinedChart' ? 'translateY(-4px)' : 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => handleChartSelect('combinedChart')}
+                title={
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: '8px 0' }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '12px',
+                        padding: '8px',
+                        marginRight: 12
+                      }}>
+                        <BarChartOutlined style={{ fontSize: 20, color: 'white' }} />
+                      </div>
+                      <div>
+                        <Title level={4} style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontWeight: "600",
+                          margin: 0,
+                          color: '#1a3353'
+                        }}>
+                          ទិដ្ឋភាពនៃការលក់និងចំណាយ
+                        </Title>
+                        <Text style={{
+                          color: '#666',
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 12
+                        }}>
+                          ការប្រៀបធៀបចំណូលនិងចំណាយប្រចាំខែ
+                        </Text>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <Badge
+                        count={combinedChartData.length}
+                        style={{
+                          backgroundColor: '#52c41a',
+                          fontSize: 10
+                        }}
+                      />
+                      <Dropdown
+                        overlay={
+                          <Menu>
+                            <Menu.Item key="select" onClick={(e) => { e.stopPropagation(); handleChartSelect('combinedChart'); }}>
+                              <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                                ជ្រើសរើសដើម្បីបោះពុម្ព
+                              </span>
+                            </Menu.Item>
+                            <Menu.Item key="print" onClick={(e) => { e.stopPropagation(); handlePrintIndividual(chartRefs.current.combinedChart, "ទិដ្ឋភាពនៃការលក់និងចំណាយ"); }}>
+                              <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                                បោះពុម្ព
+                              </span>
+                            </Menu.Item>
+                            <Menu.Item key="pdf" onClick={(e) => { e.stopPropagation(); handleDownloadIndividualPDF(chartRefs.current.combinedChart, "ទិដ្ឋភាពនៃការលក់និងចំណាយ"); }}>
+                              <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
+                                ទាញយក PDF
+                              </span>
+                            </Menu.Item>
+                          </Menu>
+                        }
+                        trigger={['click']}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          type="text"
+                          icon={<MoreOutlined />}
+                          style={{
+                            background: 'rgba(102, 126, 234, 0.1)',
+                            border: '1px solid rgba(102, 126, 234, 0.2)',
+                            borderRadius: 8,
+                            color: '#667eea'
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </Dropdown>
+                    </div>
                   </div>
                 }
               >
-                <div style={{ display: "flex", flexDirection: "column", height: "calc(100% - 40px)" }}>
-                  {Object.entries(item.Summary).map(([key, value], idx) => (
-                    <div key={idx} style={{ marginBottom: 10 }}>
-                      <Row>
-                        <Col span={12}>
-                          <span style={{
-                            color: "#666",
-                            fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-                          }}>{key}:</span>
-                        </Col>
-                        <Col span={12} style={{ textAlign: "right" }}>
-                          <span style={{
-                            fontSize: idx === 0 ? 18 : 16,
-                            fontWeight: idx === 0 ? "normal" : "bold",
-                            color: idx === 0 ? "#666" : "#1a3353"
-                          }}>
-                            {/* Value is already formatted by processDashboardData */}
-                            {value}
-                          </span>
-                        </Col>
-                      </Row>
-                    </div>
-                  ))}
-                </div>
+                {combinedChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={combinedChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <defs>
+                        <linearGradient id="saleGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#667eea" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#667eea" stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f5576c" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#f5576c" stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#43e97b" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#43e97b" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis
+                        dataKey="month"
+                        tick={{ fontFamily: "'Khmer OS', sans-serif", fontSize: 12 }}
+                        stroke="#666"
+                      />
+                      <YAxis
+                        tickFormatter={(value) => `${value.toLocaleString()}`}
+                        tick={{ fontFamily: "system-ui, sans-serif", fontSize: 12 }}
+                        stroke="#666"
+                      />
+                      <Tooltip
+                        formatter={tooltipFormatter}
+                        contentStyle={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: 12,
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Legend
+                        wrapperStyle={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
+                        }}
+                      />
+                      <Bar dataKey="sale" name="ការលក់" fill="url(#saleGradient)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="expense" name="ចំណាយ" fill="url(#expenseGradient)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="profit" name="ប្រាក់ចំណេញ" fill="url(#profitGradient)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 60 }}>
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={
+                        <span style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          color: '#666'
+                        }}>
+                          មិនមានទិន្នន័យសម្រាប់បង្ហាញ
+                        </span>
+                      }
+                    />
+                  </div>
+                )}
+
+                {selectedCardIndex === 'combinedChart' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 16,
+                    left: 16,
+                    background: '#667eea',
+                    borderRadius: '50%',
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.4)',
+                    zIndex: 10
+                  }}>
+                    <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>✓</Text>
+                  </div>
+                )}
               </Card>
             </Col>
-          )) : (
-            <Col span={24}>
-              <Empty
-                description={
-                  <span style={{
-                    fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-                  }}>
-                    មិនមានទិន្នន័យ
-                  </span>
+          </Row>
+
+          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+            {/* Sales Trend Chart */}
+            <Col xs={24} lg={12}>
+              <Card
+                ref={chartRefs.current.salesTrendChart}
+                hoverable
+                style={{
+                  borderRadius: 20,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: selectedCardIndex === 'salesTrendChart' ?
+                    '2px solid #43e97b' :
+                    '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: selectedCardIndex === 'salesTrendChart' ?
+                    '0 12px 40px rgba(67, 233, 123, 0.3)' :
+                    '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  cursor: 'pointer',
+                  transform: selectedCardIndex === 'salesTrendChart' ? 'translateY(-4px)' : 'none',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  height: '100%'
+                }}
+                onClick={() => handleChartSelect('salesTrendChart')}
+                title={
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        borderRadius: '12px',
+                        padding: '8px',
+                        marginRight: 12
+                      }}>
+                        <MoreOutlined style={{ fontSize: 20, color: 'white' }} />
+                      </div>
+                      <div>
+                        <Title level={5} style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontWeight: "600",
+                          margin: 0,
+                          color: '#1a3353'
+                        }}>
+                          និន្នាការលក់
+                        </Title>
+                        <Text style={{
+                          color: '#666',
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 12
+                        }}>
+                          ការវិភាគនិន្នាការលក់ប្រចាំខែ
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
                 }
-              />
-            </Col>
-          )}
-        </Row>
-
-        {/* Charts Section */}
-        <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-          {/* Combined Sales and Expenses Chart */}
-          <Col span={24}>
-            <Card
-              ref={chartRefs.current.combinedChart}
-              title={
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <BarChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-                    <span style={{
-                      fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-                      fontWeight: "bold"
-                    }}>ទិដ្ឋភាពនៃការលក់និងចំណាយ</span>
+              >
+                {saleByMonth.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <AreaChart data={saleByMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <defs>
+                        <linearGradient id="salesAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#43e97b" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#43e97b" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis
+                        dataKey="month"
+                        tick={{ fontFamily: "'Khmer OS', sans-serif", fontSize: 11 }}
+                        stroke="#666"
+                      />
+                      <YAxis
+                        tickFormatter={(value) => `${value.toLocaleString()}`}
+                        tick={{ fontFamily: "system-ui, sans-serif", fontSize: 11 }}
+                        stroke="#666"
+                      />
+                      <Tooltip
+                        formatter={tooltipFormatter}
+                        contentStyle={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: 12
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="sale"
+                        name="ការលក់"
+                        stroke="#43e97b"
+                        strokeWidth={3}
+                        fill="url(#salesAreaGradient)"
+                        dot={{ fill: '#43e97b', r: 4 }}
+                        activeDot={{ r: 6, fill: '#43e97b', stroke: 'white', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 60 }}>
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={
+                        <span style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          color: '#666'
+                        }}>
+                          មិនមានទិន្នន័យ
+                        </span>
+                      }
+                    />
                   </div>
-                  <Dropdown
-                    overlay={
-                      <Menu>
-                        <Menu.Item key="select" onClick={() => handleChartSelect('combinedChart')}>
-                          <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                            ជ្រើសរើសដើម្បីបោះពុម្ព
-                          </span>
-                        </Menu.Item>
-                        <Menu.Item key="print" onClick={() => handlePrintIndividual(chartRefs.current.combinedChart, "ទិដ្ឋភាពនៃការលក់និងចំណាយ")}>
-                          <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                            បោះពុម្ព
-                          </span>
-                        </Menu.Item>
-                        <Menu.Item key="pdf" onClick={() => handleDownloadIndividualPDF(chartRefs.current.combinedChart, "ទិដ្ឋភាពនៃការលក់និងចំណាយ")}>
-                          <span style={{ fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif" }}>
-                            ទាញយក PDF
-                          </span>
-                        </Menu.Item>
-                      </Menu>
-                    }
-                    trigger={['click']}
-                  >
-                    <Button type="text" icon={<MoreOutlined />} />
-                  </Dropdown>
-                </div>
-              }
-              style={{
-                borderRadius: 8,
-                border: selectedCardIndex === 'combinedChart' ? '2px solid #1a3353' : '1px solid #e8e8e8',
-                boxShadow: selectedCardIndex === 'combinedChart' ? '0 0 10px rgba(0,0,0,0.2)' : 'none'
-              }}
-            >
-              {combinedChartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={combinedChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-                    <Tooltip formatter={tooltipFormatter} />
-                    <Legend />
-                    <Bar dataKey="sale" name="ការលក់" fill="#0088FE" />
-                    <Bar dataKey="expense" name="ចំណាយ" fill="#FF8042" />
-                    <Bar dataKey="profit" name="ប្រាក់ចំណេញ" fill="#00C49F" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <Empty
-                  description={
-                    <span style={{
-                      fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-                    }}>
-                      មិនមានទិន្នន័យ
-                    </span>
-                  }
-                />
-              )}
-            </Card>
-          </Col>
-        </Row>
+                )}
 
-        <Row gutter={[16, 16]} style={{ marginTop: 20 }}>
-          {/* Sales Trend Line Chart */}
-          <Col xs={24} lg={12}>
-            <Card
-              ref={chartRefs.current.salesTrendChart}
-              title={
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-                    <span style={{
-                      fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-                      fontWeight: "bold"
-                    }}>
-                      និន្នាការលក់
-                    </span>
-                  </div>
-                  
-                </div>
-              }
-              style={{ borderRadius: 8 }}
-            >
-              {saleByMonth.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={saleByMonth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-                    <Tooltip formatter={tooltipFormatter} />
-                    <Legend />
-                    <Line type="monotone" dataKey="sale" name="ការលក់" stroke="#8884d8" activeDot={{ r: 8 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <Empty
-                  description={
-                    <span style={{
-                      fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-                    }}>
-                      មិនមានទិន្នន័យ
-                    </span>
-                  }
-                />
-              )}
-            </Card>
-          </Col>
-
-          {/* Expense Trend Line Chart */}
-          <Col xs={24} lg={12}>
-            <Card
-              title={
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <LineChartOutlined style={{ marginRight: 8, fontSize: 20, color: "#1a3353" }} />
-                  <span style={{
-                    fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
-                    fontWeight: "bold"
+                {selectedCardIndex === 'salesTrendChart' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 16,
+                    left: 16,
+                    background: '#43e97b',
+                    borderRadius: '50%',
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 16px rgba(67, 233, 123, 0.4)',
+                    zIndex: 10
                   }}>
-                    និន្នាការចំណាយ
-                  </span>
-                </div>
-              }
-              style={{ borderRadius: 8 }}
-            >
-              {expenseByMonth.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={expenseByMonth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-                    <Tooltip formatter={tooltipFormatter} />
-                    <Legend />
-                    <Line type="monotone" dataKey="expense" name="ចំណាយ" stroke="#82ca9d" activeDot={{ r: 8 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <Empty
-                  description={
-                    <span style={{
-                      fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
-                    }}>
-                      មិនមានទិន្នន័យ
-                    </span>
-                  }
-                />
-              )}
-            </Card>
-          </Col>
-        </Row>
-      </div>
+                    <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>✓</Text>
+                  </div>
+                )}
+              </Card>
+            </Col>
 
-      <style jsx>{`
-        @media print {
-          body {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .home-page {
-            padding: 0 !important;
-            background-color: white !important;
-          }
-        }
-        
-        /* Add Khmer font import - make sure these fonts are available */
-        @font-face {
-          font-family: 'Khmer OS';
-          src: url('/fonts/KhmerOS.ttf') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-        }
-        
-        @font-face {
-          font-family: 'Khmer OS System';
-          src: url('/fonts/KhmerOSsys.ttf') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-        }
-        
-        @font-face {
-          font-family: 'Khmer OS Battambang';
-          src: url('/fonts/KhmerOSbattambang.ttf') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-        }
-      `}</style>
+            {/* Expense Trend Chart */}
+            <Col xs={24} lg={12}>
+              <Card
+                ref={chartRefs.current.expenseTrendChart}
+                hoverable
+                style={{
+                  borderRadius: 20,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: selectedCardIndex === 'expenseTrendChart' ?
+                    '2px solid #f5576c' :
+                    '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: selectedCardIndex === 'expenseTrendChart' ?
+                    '0 12px 40px rgba(245, 87, 108, 0.3)' :
+                    '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  cursor: 'pointer',
+                  transform: selectedCardIndex === 'expenseTrendChart' ? 'translateY(-4px)' : 'none',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  height: '100%'
+                }}
+                onClick={() => handleChartSelect('expenseTrendChart')}
+                title={
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        borderRadius: '12px',
+                        padding: '8px',
+                        marginRight: 12
+                      }}>
+                        <FallOutlined style={{ fontSize: 20, color: 'white' }} />
+                      </div>
+                      <div>
+                        <Title level={5} style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontWeight: "600",
+                          margin: 0,
+                          color: '#1a3353'
+                        }}>
+                          និន្នាការចំណាយ
+                        </Title>
+                        <Text style={{
+                          color: '#666',
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 12
+                        }}>
+                          ការវិភាគចំណាយប្រចាំខែ
+                        </Text>
+                      </div>
+                    </div>
+
+                    <Badge
+                      count={expenseByMonth.length}
+                      style={{
+                        backgroundColor: '#f5576c',
+                        fontSize: 10
+                      }}
+                    />
+                  </div>
+                }
+              >
+                {expenseByMonth.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <AreaChart data={expenseByMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <defs>
+                        <linearGradient id="expenseAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f5576c" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#f5576c" stopOpacity={0.05} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis
+                        dataKey="month"
+                        tick={{ fontFamily: "'Khmer OS', sans-serif", fontSize: 11 }}
+                        stroke="#666"
+                      />
+                      <YAxis
+                        tickFormatter={(value) => `${value.toLocaleString()}`}
+                        tick={{ fontFamily: "system-ui, sans-serif", fontSize: 11 }}
+                        stroke="#666"
+                      />
+                      <Tooltip
+                        formatter={tooltipFormatter}
+                        contentStyle={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: 12
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="expense"
+                        name="ចំណាយ"
+                        stroke="#f5576c"
+                        strokeWidth={3}
+                        fill="url(#expenseAreaGradient)"
+                        dot={{ fill: '#f5576c', r: 4 }}
+                        activeDot={{ r: 6, fill: '#f5576c', stroke: 'white', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 60 }}>
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={
+                        <span style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          color: '#666'
+                        }}>
+                          មិនមានទិន្នន័យ
+                        </span>
+                      }
+                    />
+                  </div>
+                )}
+
+                {selectedCardIndex === 'expenseTrendChart' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 16,
+                    left: 16,
+                    background: '#f5576c',
+                    borderRadius: '50%',
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 16px rgba(245, 87, 108, 0.4)',
+                    zIndex: 10
+                  }}>
+                    <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>✓</Text>
+                  </div>
+                )}
+              </Card>
+            </Col>
+
+            {/* Top Products Pie Chart */}
+            <Col xs={24} lg={16}>
+              <Card
+                hoverable
+                style={{
+                  borderRadius: 20,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  transition: 'all 0.3s ease',
+                  height: '100%'
+                }}
+                title={
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <div style={{
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      borderRadius: '12px',
+                      padding: '8px',
+                      marginRight: 12
+                    }}>
+                      <PieChartOutlined style={{ fontSize: 20, color: 'white' }} />
+                    </div>
+                    <div>
+                      <Title level={5} style={{
+                        fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                        fontWeight: "600",
+                        margin: 0,
+                        color: '#1a3353'
+                      }}>
+                        ផលិតផលលក់ដាច់បំផុត
+                      </Title>
+                      <Text style={{
+                        color: '#666',
+                        fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                        fontSize: 12
+                      }}>
+                        Top 5 ផលិតផលលក់ដាច់
+                      </Text>
+                    </div>
+                  </div>
+                }
+              >
+                {topSales.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={320}>
+                    <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <Pie
+                        data={topSales}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        stroke="white"
+                        strokeWidth={2}
+                      >
+                        {topSales.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => [`$${value.toLocaleString()}`, "ចំនួនលក់"]}
+                        contentStyle={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          borderRadius: 12,
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif"
+                        }}
+                      />
+                      <Legend
+                        wrapperStyle={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          fontSize: 12
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 60 }}>
+                    <Empty
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      description={
+                        <span style={{
+                          fontFamily: "'Khmer OS', 'Khmer OS System', 'Khmer OS Battambang', sans-serif",
+                          color: '#666'
+                        }}>
+                          មិនមានទិន្នន័យផលិតផល
+                        </span>
+                      }
+                    />
+                  </div>
+                )}
+              </Card>
+            </Col>
+
+            {/* Customer Directory */}
+            <Col xs={24} lg={8}>
+              <div style={{ height: '100%' }}>
+                <CustomerList />
+              </div>
+            </Col>
+          </Row>
+
+
+
+
+        </div>
+      </div>
     </div>
   );
 }
